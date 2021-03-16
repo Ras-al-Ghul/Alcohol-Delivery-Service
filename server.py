@@ -163,17 +163,25 @@ def another():
 
 
 # Example of adding new data to the database
-@app.route('/add', methods=['POST'])
-def add():
-  name = request.form['name']
-  g.conn.execute('INSERT INTO test(name) VALUES (%s)', name)
-  return redirect('/')
+# @app.route('/add', methods=['POST'])
+# def add():
+#   name = request.form['name']
+#   g.conn.execute('INSERT INTO test(name) VALUES (%s)', name)
+#   return redirect('/')
 
 
 @app.route('/login')
 def login():
     abort(401)
     this_is_never_executed()
+
+@app.route('/admin/product')
+def admin_product():
+      return render_template('admin/product.html')
+  
+@app.route('/admin/shipment')
+def admin_shipment():
+      return render_template('admin/shipment.html')
 
 
 if __name__ == "__main__":
