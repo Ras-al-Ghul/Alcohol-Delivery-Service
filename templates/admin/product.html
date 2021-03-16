@@ -1,17 +1,56 @@
+<!DOCTYPE html>
 <html>
     <head>
         <title>Admin - Product</title>
+        <link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='css/main.css') }}">
     </head>
 
     <body>
-        <h1>Admin - Product Overview</h1>
-        
-        <div>
+        <h1 class='centerbutton'>Admin - Product Overview</h1>
+
+        <table class='prdtable'>
+            <thead>
+            <tr>
+                <th>Product Name</th>
+                <th>Product Category</th>
+                <th>Current Inventory</th>
+                <th>UPC</th>
+                <th>Unit of Measure</th>
+                <th>Buy Price</th>
+                <th>Item Price</th>
+                <th>Package Quantity</th>
+                <th>Region</th>
+                <th>Country</th>
+                <th>Color</th>
+                <th>Description</th>
+                <th>Brand Name</th>
+                <th>Brand Description</th>
+                <th>Point of Contact</th>
+            </tr>
+            </thead>
+            <tbody>
             {% for p in products %}
-            <div>{{p}}</div>
+            <tr>
+                <td>{{p['product_name']}}</td>
+                <td>{{p['product_category']}}</td>
+                <td>{{p['cur_size']}}</td>
+                <td>{{p['upc']}}</td>
+                <td>{{p['unit_of_measure']}}</td>
+                <td>{{p['buy_price_per_unit']}}</td>
+                <td>{{p['item_price']}}</td>
+                <td>{{p['package_quantity']}}</td>
+                <td>{{p['region']}}</td>
+                <td>{{p['country']}}</td>
+                <td>{{p['color']}}</td>
+                <td>{{p['description']}}</td>
+                <td>{{p['brand_name']}}</td>
+                <td>{{p['brand_description']}}</td>
+                <td>{{p['brand_poc']}}</td>
             {% endfor %}
-        </div>
-        
+            </tr>
+            </tbody>
+        </table>
+
         <p><a href="another">Go to the other page</a></p>
         
         <form method="POST" action="/add">

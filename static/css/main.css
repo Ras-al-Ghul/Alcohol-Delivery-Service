@@ -1,0 +1,57 @@
+body{ 
+    font-size: 15pt;
+    font-family: arial;
+  }
+
+  .buttoncategory{
+    background-color: #FFA500;
+    color: white;
+    text-align: center;
+    display: inline-block;
+    cursor: pointer;
+    font-weight: bold;
+  }
+
+  .buttonbrand{
+    background-color: #4CAF50;
+    color: white;
+    text-align: center;
+    display: inline-block;
+    cursor: pointer;
+    font-weight: bold;
+  }
+
+  .buttonc{height: 6%;}
+  .buttonb{height: 6%;}
+
+  .centerbutton{text-align: center;}
+
+  /* Product Table */
+  .prdtable{
+      text-align: center;
+      border-collapse: collapse;
+      margin: 25px 0;
+      font-size: 0.9em;
+      font-family: sans-serif;
+      min-width: 400px;
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
+  }
+  .prdtable thead tr {
+    background-color: #009879;
+    color: #ffffff;
+    text-align: left;
+}
+.prdtable th,
+.prdtable td {
+    padding: 12px 15px;
+}
+.prdtable tbody tr {
+  border-bottom: 1px solid #dddddd;
+}
+.prdtable tbody tr:nth-of-type(even) {
+  background-color: #f3f3f3;
+}
+.prdtable tbody tr:last-of-type {
+  border-bottom: 2px solid #009879;
+}
+

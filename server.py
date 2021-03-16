@@ -180,9 +180,7 @@ def login():
 @app.route('/admin/product')
 def admin_product():
       products = g.conn.execute(
-          'select p.product_name, p.product_category, p.cur_size, p.upc, p.unit_of_measure, p.buy_price_per_unit,'
-                'p.item_price, p.package_quantity, p.region, p.country, p.color, p.description, b.brand_name, b.description as brand_description, b.brand_poc'
-          'from product p left join brand b on b.brand_id = p.brand_id'
+          'select p.product_name, p.product_category, p.cur_size, p.upc, p.unit_of_measure, p.buy_price_per_unit, p.item_price, p.package_quantity, p.region, p.country, p.color, p.description, b.brand_name, b.description as brand_description, b.brand_poc from product p left join brand b on b.brand_id = p.brand_id'
       ).fetchall()
       return render_template('admin/product.html', products=products)
   
