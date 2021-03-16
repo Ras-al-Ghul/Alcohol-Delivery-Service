@@ -41,11 +41,11 @@ engine = create_engine(DATABASEURI)
 # Example of running queries in your database
 # Note that this will probably not work if you already have a table named 'test' in your database, containing meaningful data. This is only an example showing you how to run queries in your database using SQLAlchemy.
 #
-engine.execute("""CREATE TABLE IF NOT EXISTS test (
-  id serial,
-  name text
-);""")
-engine.execute("""INSERT INTO test(name) VALUES ('grace hopper'), ('alan turing'), ('ada lovelace');""")
+# engine.execute("""CREATE TABLE IF NOT EXISTS test (
+#   id serial,
+#   name text
+# );""")
+# engine.execute("""INSERT INTO test(name) VALUES ('grace hopper'), ('alan turing'), ('ada lovelace');""")
 
 
 @app.before_request
@@ -163,11 +163,11 @@ def another():
 
 
 # Example of adding new data to the database
-# @app.route('/add', methods=['POST'])
-# def add():
-#   name = request.form['name']
-#   g.conn.execute('INSERT INTO test(name) VALUES (%s)', name)
-#   return redirect('/')
+@app.route('/add', methods=['POST'])
+def add():
+  name = request.form['name']
+  g.conn.execute('INSERT INTO test(name) VALUES (%s)', name)
+  return redirect('/')
 
 
 @app.route('/login')
@@ -177,7 +177,12 @@ def login():
 
 @app.route('/admin/product')
 def admin_product():
-      return render_template('admin/product.html')
+      products = g.conn.execute(
+          'select p.product_name, p.product_category, p.cur_size, p.upc, p.unit_of_measure, p.buy_price_per_unit,'
+                'p.item_price, p.package_quantity, p.region, p.country, p.color, p.description, b.brand_name, b.description as brand_description, b.brand_poc'
+          'from product p left join brand b on b.brand_id = p.brand_id'
+      ).fetchall()
+      return render_template('admin/product.html', products=products)
   
 @app.route('/admin/shipment')
 def admin_shipment():
