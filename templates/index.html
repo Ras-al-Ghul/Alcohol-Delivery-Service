@@ -4,18 +4,38 @@
       font-size: 15pt;
       font-family: arial;
     }
+    .buttoncategory{
+      background-color: #FFA500;
+      color: white;
+      text-align: center;
+      display: inline-block;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    .buttonbrand{
+      background-color: #4CAF50;
+      color: white;
+      text-align: center;
+      display: inline-block;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    .buttonc{height: 6%;}
+    .buttonb{height: 6%;}
+
+    .centerbutton{text-align: center;}
   </style>
 
 
 <body>
-  <h1>Some famous Computer Scientists</h1>
-  <div>{{data}}</div>
+  <h1 class="centerbutton">Your favourite Alcohol Delivery Service!</h1>
+  <!-- <div>{{data}}</div> -->
 
-  <div>
+<!--   <div>
     {% for n in data %}
     <div>{{n}}</div>
     {% endfor %}
-  </div>
+  </div> -->
 
 <p><a href="another">Go to the other page</a></p>
 
@@ -23,7 +43,20 @@
 <p>Name of new computer scientist: <input type="text" name="name"> <input type="submit" value="Add"></p>
 </form>
 
-</body>
+<p class="centerbutton">Choose from your favourite types</p>
+<div class="centerbutton">
+  {% for c in category %}
+  <button class="buttoncategory buttonc">{{c}}</button>
+  {% endfor %}
+</div>
 
+<p class="centerbutton">Choose from your favourite brands</p>
+<div class="centerbutton">
+  {% for b in brand %}
+  <button class="buttonbrand buttonb">{{b}}</button>
+  {% endfor %}
+</div>
+
+</body>
 
 </html>
