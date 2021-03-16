@@ -104,14 +104,16 @@ def index():
   # DEBUG: this is debugging code to see what request looks like
   print(request.args)
 
-
-  #
-  # example of a database query
-  #
-  cursor = g.conn.execute("SELECT name FROM test")
-  names = []
+  cursor = g.conn.execute("SELECT DISTINCT product_category FROM product")
+  category = []
   for result in cursor:
-    names.append(result['name'])  # can also be accessed using result[0]
+    category.append(result['product_category'])  # can also be accessed using result[0]
+  cursor.close()
+
+  cursor = g.conn.execute("SELECT brand_name FROM brand")
+  brand = []
+  for result in cursor:
+    brand.append(result['brand_name'])  # can also be accessed using result[0]
   cursor.close()
 
   #
@@ -140,7 +142,7 @@ def index():
   #     <div>{{n}}</div>
   #     {% endfor %}
   #
-  context = dict(data = names)
+  context = dict(category=category, brand=brand)
 
 
   #
