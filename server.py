@@ -15,7 +15,7 @@ import hashlib
   # accessible as a variable in index.html:
 from sqlalchemy import *
 from sqlalchemy.pool import NullPool
-from flask import Flask, flash, request, render_template, g, redirect, Response, url_for
+from flask import Flask, flash, request, render_template, g, redirect, Response, session, url_for
 from sqlalchemy.sql.selectable import Select
 from wtforms import Form, StringField, SubmitField, DecimalField, IntegerField
 
@@ -104,10 +104,6 @@ def index():
 
   See its API: https://flask.palletsprojects.com/en/1.1.x/api/#incoming-request-data
   """
-
-  # DEBUG: this is debugging code to see what request looks like
-  print(request.args)
-
   cursor = g.conn.execute("SELECT DISTINCT product_category FROM product")
   category = []
   for result in cursor:
@@ -138,6 +134,8 @@ def loginpost():
   cursor = g.conn.execute("SELECT * FROM customer WHERE email = '{}' AND password = '{}'".format(username, password))
   if cursor.rowcount:
     cursor.close()
+    session['username'] = username
+    session['is_admin'] = False
     flash('Welcome to Booze.io!')
     return redirect(url_for('index'))
   else:
@@ -145,6 +143,8 @@ def loginpost():
     cursor = g.conn.execute("SELECT * FROM employee WHERE email = '{}' AND password = '{}'".format(username, password))
     if cursor.rowcount:
       cursor.close()
+      session['username'] = username
+      session['is_admin'] = True
       flash('Welcome to Booze.io admin!')
       return redirect(url_for('index'))
   cursor.close()
@@ -168,6 +168,8 @@ def signuppost():
   g.conn.execute("INSERT INTO customer (first_name, last_name, email, dob, password) VALUES '{}', '{}', '{}', {}, '{}'"
     .format(firstname, lastname, username, dob, passhash))
   flash('Welcome to Booze.io')
+  session['username'] = username
+  session['is_admin'] = False
   return redirect(url_for('index'))
 
 
@@ -183,6 +185,8 @@ def signup():
 
 @app.route('/admin/product')
 def admin_product():
+      if 'username' not in session or (not session['is_admin']):
+        return redirect(url_for('index'))
       products = g.conn.execute(
           'select p.product_id, p.product_name, p.product_category, p.cur_size, p.upc, p.unit_of_measure, p.buy_price_per_unit, p.item_price, p.package_quantity, p.region, p.country, p.color, p.description, b.brand_id, b.brand_name, b.description as brand_description, b.brand_poc from product p left join brand b on b.brand_id = p.brand_id'
       ).fetchall()
@@ -208,6 +212,8 @@ class ProductForm(Form):
 
 @app.route('/admin/add_product', methods=['POST', 'GET'])
 def admin_add_product():
+      if 'username' not in session or not session['is_admin']:
+        return redirect(url_for('index'))
       if request.method == 'POST':
         # Insert into brand table if brand does not already exist.
         brand_name = request.form['brand_name']
@@ -241,6 +247,8 @@ def admin_add_product():
 
 @app.route('/admin/edit/<int:product_id>', methods=['POST', 'GET'])
 def admin_edit_product(product_id):
+      if 'username' not in session or not session['is_admin']:
+        return redirect(url_for('index'))
       result = g.conn.execute('SELECT * FROM product WHERE product_id = %s', [product_id])
       product = result.fetchone()
 
@@ -286,6 +294,8 @@ def admin_edit_product(product_id):
 
 @app.route('/admin/delete/<int:product_id>', methods=['POST',])
 def admin_delete_product(product_id):
+      if 'username' not in session or not session['is_admin']:
+        return redirect(url_for('index'))
       g.conn.execute('DELETE FROM product WHERE product_id = %s', [product_id])
       flash('Product Deleted', 'success')
       return redirect('/admin/product')
@@ -293,6 +303,8 @@ def admin_delete_product(product_id):
 
 @app.route('/admin/shipment')
 def admin_shipment():
+      if 'username' not in session or not session['is_admin']:
+        return redirect(url_for('index'))
       return render_template('admin/shipment.html')
 
 
