@@ -9,15 +9,18 @@ A debugger such as "pdb" may be helpful for debugging.
 Read about it online.
 """
 import os
+
+# For password hashing
+import hashlib
   # accessible as a variable in index.html:
 from sqlalchemy import *
 from sqlalchemy.pool import NullPool
-from flask import Flask, request, render_template, g, redirect, Response
-from wtforms import Form, StringField
+from flask import Flask, flash, request, render_template, g, redirect, Response, url_for
+from sqlalchemy.sql.selectable import Select
+from wtforms import Form, StringField, SubmitField, DecimalField, IntegerField
 
 tmpl_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates')
 app = Flask(__name__, template_folder=tmpl_dir)
-
 
 #
 # The following is a dummy URI that does not connect to a valid database. You will need to modify it to connect to your Part 2 database in order to use the data.
@@ -117,34 +120,7 @@ def index():
     brand.append(result['brand_name'])  # can also be accessed using result[0]
   cursor.close()
 
-  #
-  # Flask uses Jinja templates, which is an extension to HTML where you can
-  # pass data to a template and dynamically generate HTML based on the data
-  # (you can think of it as simple PHP)
-  # documentation: https://realpython.com/primer-on-jinja-templating/
-  #
-  # You can see an example template in templates/index.html
-  #
-  # context are the variables that are passed to the template.
-  # for example, "data" key in the context variable defined below will be 
-  # accessible as a variable in index.html:
-  #
-  #     # will print: [u'grace hopper', u'alan turing', u'ada lovelace']
-  #     <div>{{data}}</div>
-  #     
-  #     # creates a <div> tag for each element in data
-  #     # will print: 
-  #     #
-  #     #   <div>grace hopper</div>
-  #     #   <div>alan turing</div>
-  #     #   <div>ada lovelace</div>
-  #     #
-  #     {% for n in data %}
-  #     <div>{{n}}</div>
-  #     {% endfor %}
-  #
   context = dict(category=category, brand=brand)
-
 
   #
   # render_template looks in the templates/ folder for files.
@@ -152,41 +128,83 @@ def index():
   #
   return render_template("index.html", **context)
 
-#
-# This is an example of a different path.  You can see it at:
-# 
-#     localhost:8111/another
-#
-# Notice that the function name is another() rather than index()
-# The functions for each app.route need to have different names
-#
-@app.route('/another')
-def another():
-  return render_template("another.html")
+
+@app.route('/loginpost', methods=['POST'])
+def loginpost():
+  username = request.form['username']
+  password = hashlib.md5(request.form['password'].encode()).hexdigest()
+  # password = "md512cc15408468bd3663f4717e87acf491" # customer
+  password = "md55565b8e7bf495890ee95b3a0345d2c43" # employee
+  cursor = g.conn.execute("SELECT * FROM customer WHERE email = '{}' AND password = '{}'".format(username, password))
+  if cursor.rowcount:
+    cursor.close()
+    flash('Welcome to Booze.io!')
+    return redirect(url_for('index'))
+  else:
+    cursor.close()
+    cursor = g.conn.execute("SELECT * FROM employee WHERE email = '{}' AND password = '{}'".format(username, password))
+    if cursor.rowcount:
+      cursor.close()
+      flash('Welcome to Booze.io admin!')
+      return redirect(url_for('index'))
+  cursor.close()
+  flash('Wrong email or password. Click on signup to signup.')
+  return redirect(url_for('login'))
 
 
-# Example of adding new data to the database
-@app.route('/add', methods=['POST'])
-def add():
-  name = request.form['name']
-  g.conn.execute('INSERT INTO test(name) VALUES (%s)', name)
-  return redirect('/')
+@app.route('/signuppost', methods=['POST'])
+def signuppost():
+  username = request.form['username']
+  password1 = request.form['password1']
+  password2 = request.form['password2']
+  firstname = request.form['firstname']
+  lastname = request.form['lastname']
+  dob = request.form['dob']
+  if ((password1 != password2) or ('@' not in username or '.' not in username) or
+      (len(dob) != 10 or dob[4] != '-' or dob[7] != '-') or (dob[:4] > '2000')):
+    flash('One of your details is incorrect. Try again.')
+    return redirect(url_for('signup'))
+  passhash = hashlib.md5(password1.encode()).hexdigest()
+  g.conn.execute("INSERT INTO customer (first_name, last_name, email, dob, password) VALUES '{}', '{}', '{}', {}, '{}'"
+    .format(firstname, lastname, username, dob, passhash))
+  flash('Welcome to Booze.io')
+  return redirect(url_for('index'))
 
 
 @app.route('/login')
 def login():
-    abort(401)
-    this_is_never_executed()
+    return render_template('login.html')
+    
+
+@app.route('/signup')
+def signup():
+    return render_template('signup.html')
+
 
 @app.route('/admin/product')
 def admin_product():
       products = g.conn.execute(
-          'select p.product_name, p.product_category, p.cur_size, p.upc, p.unit_of_measure, p.buy_price_per_unit, p.item_price, p.package_quantity, p.region, p.country, p.color, p.description, b.brand_name, b.description as brand_description, b.brand_poc from product p left join brand b on b.brand_id = p.brand_id'
+          'select p.product_id, p.product_name, p.product_category, p.cur_size, p.upc, p.unit_of_measure, p.buy_price_per_unit, p.item_price, p.package_quantity, p.region, p.country, p.color, p.description, b.brand_id, b.brand_name, b.description as brand_description, b.brand_poc from product p left join brand b on b.brand_id = p.brand_id'
       ).fetchall()
       return render_template('admin/product.html', products=products)
 
 class ProductForm(Form):
-      product_name = StringField('Product Name')
+      product_name = StringField('Product Name: ')
+      product_category = StringField('Product Category: ')
+      cur_size = IntegerField('Current Inventory: ')
+      upc = StringField('UPC: ')
+      unit_of_measure = StringField('Unit of Measure: ')
+      buy_price_per_unit = DecimalField('Buy Price: ')
+      item_price = DecimalField('Item Price: ')
+      package_quantity = IntegerField('Package Quantity: ')
+      region = StringField('Region: ')
+      country = StringField('Country: ')
+      color = StringField('Color: ')
+      description = StringField('Description: ')
+      brand_name = StringField('Brand Name: ')
+      brand_description = StringField('Brand Description: ')
+      brand_poc = StringField('Brand Point of Contact: ')
+      submit = SubmitField('Submit')
 
 @app.route('/admin/add_product', methods=['POST', 'GET'])
 def admin_add_product():
@@ -223,32 +241,55 @@ def admin_add_product():
 
 @app.route('/admin/edit/<int:product_id>', methods=['POST', 'GET'])
 def admin_edit_product(product_id):
-      product = g.conn.execute('SELECT * FROM product WHERE product_id = %s', product_id)
-      product = product.fetchone()
+      result = g.conn.execute('SELECT * FROM product WHERE product_id = %s', [product_id])
+      product = result.fetchone()
+
+      # Get form
+      form = ProductForm(request.form)
 
       # Populate the form with existing data
-      form.product_name.data = product['title']
+      form.product_name.data = product['product_name']
+      form.product_category.data = product['product_category']
+      form.cur_size.data = product['cur_size']
+      form.upc.data = product['upc']
+      form.unit_of_measure.data = product['unit_of_measure']
+      form.buy_price_per_unit.data = product['buy_price_per_unit']
+      form.item_price.data = product['item_price']
+      form.package_quantity.data = product['package_quantity']
+      form.region.data = product['region']
+      form.country.data = product['country']
+      form.color.data = product['color']
+      form.description.data = product['color']
 
-      # if request.method == 'POST':
-      #     product_name = request.form['product_name']
-      #     product_category = request.form['product_category']
-      #     cur_size = request.form['cur_size']
-      #     upc = request.form['upc']
-      #     unit_of_measure = request.form['unit_of_measure']
-      #     buy_price_per_unit = request.form['buy_price_per_unit']
-      #     item_price = request.form['item_price']
-      #     package_quantity = request.form['package_quantity']
-      #     region = request.form['region']
-      #     country = request.form['country']
-      #     color = request.form['color']
-      #     description = request.form['description']
+      # Update the product
+      if request.method == 'POST':
+          product_name = request.form['product_name']
+          product_category = request.form['product_category']
+          cur_size = request.form['cur_size']
+          upc = request.form['upc']
+          unit_of_measure = request.form['unit_of_measure']
+          buy_price_per_unit = request.form['buy_price_per_unit']
+          item_price = request.form['item_price']
+          package_quantity = request.form['package_quantity']
+          region = request.form['region']
+          country = request.form['country']
+          color = request.form['color']
+          description = request.form['description']
 
-      #     g.conn.execute('INSERT INTO product(brand_id, product_name, product_category, cur_size, upc, unit_of_measure, buy_price_per_unit, item_price, package_quantity, region, country, color, description) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s) ON CONFLICT (product_name) DO NOTHING', brand_id, product_name, product_category, cur_size, upc, unit_of_measure, buy_price_per_unit, item_price, package_quantity, region, country, color, description)
+          g.conn.execute('UPDATE product SET product_name=%s, product_category=%s, cur_size=%s, upc=%s, unit_of_measure=%s, buy_price_per_unit=%s, item_price=%s, package_quantity=%s, region=%s, country=%s, color=%s, description=%s WHERE product_id=%s', (product_name, product_category, cur_size, upc, unit_of_measure, buy_price_per_unit, item_price, package_quantity, region, country, color, description, product_id))
 
-      #     return redirect('/admin/product')
+          flash('Product Updated', 'success')
 
-      return render_template('admin/edit_product.html')
-  
+          return redirect('/admin/product')
+
+      return render_template('admin/edit_product.html', form=form)
+
+@app.route('/admin/delete/<int:product_id>', methods=['POST'])
+def admin_delete_id(product_id):
+      product = g.conn.execute('SELECT * FROM product WHERE product_id = %s', product_id,)
+      product = product.fetchone()
+      # g.conn.execute('INSERT INTO brand(brand_name, description, brand_poc) VALUES (%s, %s, %s) ON CONFLICT DO NOTHING', brand_name, brand_description, brand_poc)
+
 @app.route('/admin/shipment')
 def admin_shipment():
       return render_template('admin/shipment.html')
@@ -277,6 +318,8 @@ if __name__ == "__main__":
 
     HOST, PORT = host, port
     print("running on %s:%d" % (HOST, PORT))
+    app.secret_key = 'secret_key'
+    app.config['SESSION_TYPE'] = 'filesystem'
     app.run(host=HOST, port=PORT, debug=debug, threaded=threaded)
 
   run()

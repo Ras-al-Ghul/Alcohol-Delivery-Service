@@ -5,27 +5,30 @@
         <link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='css/main.css') }}">
     </head>
 
+    {% block body %}
     <body>
         <h1 class='centerbutton'>Edit an Existing Product</h1>
+        {% from "_formhelper.html" import render_field %}
 
-        <form method="POST" action="/admin/edit_product">
-        <p>
-            Product Name: <input type="text" name="product_name"><br>
-            Product Category: <input type="text" name="product_category"><br>
-            Current Inventory: <input type="text" name="cur_size"><br>
-            UPC: <input type="text" name="upc"><br>
-            Unit of Measure: <input type="text" name="unit_of_measure"><br>
-            Buy Price: <input type="text" name="buy_price_per_unit"><br>
-            Item Price: <input type="text" name="item_price"><br>
-            Package Quantity: <input type="text" name="package_quantity"><br>
-            Region: <input type="text" name="region"><br>
-            Country: <input type="text" name="country"><br>
-            Color: <input type="text" name="color"><br>
-            Description: <input type="text" name="description"><br>
+        <form method="POST" action="">
+            {{render_field(form.product_name)}} <br>
+            {{render_field(form.product_category)}} <br>
+            {{render_field(form.cur_size)}} <br>
+            {{render_field(form.upc)}} <br>
+            {{render_field(form.unit_of_measure)}} <br>
+            {{render_field(form.buy_price_per_unit)}} <br>
+            {{render_field(form.item_price)}} <br>
+            {{render_field(form.package_quantity)}} <br>
+            {{render_field(form.region)}} <br>
+            {{render_field(form.country)}} <br>
+            {{render_field(form.color)}} <br>
+            {{render_field(form.description)}} <br><br>
+
             <input type="submit" value="Update">
         </p>
         </form>
         
     </body>
+    {% endblock %}
 
 </html>

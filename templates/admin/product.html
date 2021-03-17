@@ -50,7 +50,7 @@
                 <td>{{p['brand_name']}}</td>
                 <td>{{p['brand_description']}}</td>
                 <td>{{p['brand_poc']}}</td>
-                <td class="editbtn">Edit</td>
+                <td class="editbtn"><a href="{{ url_for('admin_edit_product', product_id=p['product_id']) }}">Edit</a></td>
             {% endfor %}
             </tr>
             </tbody>
