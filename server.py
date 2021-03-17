@@ -213,6 +213,50 @@ def signup():
     return render_template('signup.html', itemcount=session['itemcount'], login=get_login())
 
 
+@app.route('/cart', methods=['POST', 'GET'])
+def cart():
+    initialize_cart()
+    if not get_login():
+        flash('Login/Signup to access cart')
+        return redirect(url_for('login'))
+    if 'product_id' in request.args:
+        product_id = request.args['product_id']
+        session['cart'][product_id] -= 1
+        if session['cart'][product_id] == 0:
+            del session['cart'][product_id]
+        session['itemcount'] -= 1
+    products = []
+    total = 0.
+    for k, v in session['cart'].items():
+        row = g.conn.execute(
+            "select p.product_id, p.product_name, p.unit_of_measure, p.item_price, p.package_quantity, p.region, p.country, p.color, p.description, b.brand_name, b.description as brand_description from product p left join brand b on b.brand_id = p.brand_id where p.product_id = {}".format(k)
+        ).fetchall()
+        row = dict(row[0])
+        row['count'] = v
+        row['init_price'] = round(float(row['item_price']) * int(v), 2)
+        row['discount'] = 0.0
+        if int(v) >= 3:
+            row['discount'] = round(int(v)//3., 2)
+        row['final_price'] = row['init_price'] - row['discount']
+        products.append(row)
+        total += row['final_price']
+    session['total'] = total = round(total, 2)
+    session['tax'] = tax = round(0.04 * total, 2)
+    session['total_post_tax'] = total_post_tax = round(total + tax, 2)
+    return render_template('cart.html', products=products, total=total, 
+                                        tax=tax, total_post_tax=total_post_tax)
+
+
+@app.route('/customer')
+def customer():
+    pass
+
+
+@app.route('/ship')
+def ship():
+    pass
+
+
 @app.route('/category/<string:category>', methods=['POST', 'GET'])
 def category(category):
     initialize_cart()

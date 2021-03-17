@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Cart</title>
+        <link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='css/main.css') }}">
+    </head>
+
+    <body>
+        <div class="topnav">
+            <a class="topnavbuttonhome" href="/">Home</a>
+            <a class="topnavbutton" href="/customer">Edit Profile</a>
+            <form method="POST" action="/logoutpost">
+              <button class="topnavbutton" style="color: #333">Logout</button>
+            </form>
+        </div>
+
+        <h1 class='centerbutton'>Your cart</h1>
+        <table class='prdtable'>
+            <thead>
+            <tr>
+                <th>Product Name</th>
+                <th>Unit of Measure</th>
+                <th>Item Price</th>
+                <th>Region</th>
+                <th>Country</th>
+                <th>Color</th>
+                <th>Description</th>
+                <th>Brand Name</th>
+                <th>Brand Description</th>
+                <th>In Cart</th>
+                <th>Price</th>
+                <th>Discount ($1 for 3)</th>
+                <th>Final Price</th>
+                <th>Remove an item from cart</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for p in products %}
+            <tr>
+                <td>{{p['product_name']}}</td>
+                <td>{{p['unit_of_measure']}}</td>
+                <td>${{p['item_price']}}</td>
+                <td>{{p['region']}}</td>
+                <td>{{p['country']}}</td>
+                <td>{{p['color']}}</td>
+                <td>{{p['description']}}</td>
+                <td>{{p['brand_name']}}</td>
+                <td>{{p['brand_description']}}</td>
+                <td>{{p['count']}}</td>                
+                <td>${{p['init_price']}}</td>
+                <td>${{p['discount']}}</td>
+                <td>${{p['final_price']}}</td>
+                <td>
+                    <form method="POST" action="{{ url_for('cart', product_id=p['product_id']) }}">
+                        <input class="editbtn" type="submit" value="Remove 1 qty">
+                    </form>
+                </td>
+            {% endfor %}
+            </tr>
+            </tbody>
+        </table>
+        <div class="centerbutton">
+            Total amount after discount: ${{total}}<br>
+            Tax: ${{tax}}<br>
+            Total amount to be paid: ${{total_post_tax}}<br>
+        </div>
+        {% if total_post_tax > 0 %}
+            <div class="centerbutton">
+                <form method="GET" action="{{ url_for('ship') }}">
+                    <input class="editbth" type="submit" value="Proceed to shipping">
+                </form>
+            </div>
+        {% endif %}
+    </body>
+
+</html>
