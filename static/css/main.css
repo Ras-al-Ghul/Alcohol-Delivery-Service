@@ -1,5 +1,5 @@
 body{ 
-    font-size: 15pt;
+    font-size: 13pt;
     font-family: arial;
   }
 
@@ -53,5 +53,13 @@ body{
 }
 .prdtable tbody tr:last-of-type {
   border-bottom: 2px solid #009879;
+}
+.editbtn{
+  background-color: lightblue;
+  color: white;
+  text-align: center;
+  display: inline-block;
+  cursor: pointer;
+  font-weight: bold;
 }
 
