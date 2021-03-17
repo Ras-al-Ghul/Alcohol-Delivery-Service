@@ -437,6 +437,9 @@ def admin_order_details(order_id):
       result = g.conn.execute('select distinct o.order_id, o.order_number, o.customer_id, c.first_name, c.last_name, c.email, o.total, o.tax, o.discount, o.is_void, s.carrier, s.tracking_number, s.ship_date, s.delivered_date from orders o inner join customer c on c.customer_id = o.customer_id left join shipment s on s.order_id = o.order_id WHERE o.order_id = %s', [order_id])
       order = result.fetchone()
 
+      od = g.conn.execute('select distinct od.order_id, od.product_id, od.quantity, od.price, od.discount, p.brand_id, p.product_name, b.brand_name, p.product_category, p.upc, p.unit_of_measure, p.region, p.country, p.color from order_items od inner join product p on p.product_id = od.product_id left join brand b on b.brand_id = p.brand_id WHERE od.order_id = %s', [order_id])
+      order_details = od.fetchall()
+
       # Get Form
       form = ShipmentForm(request.form)
 
@@ -456,13 +459,7 @@ def admin_order_details(order_id):
 
           flash('Shipment Information Updated', 'success')
 
-      return render_template('admin/order_details.html', order=order, form=form)
-
-@app.route('/admin/shipment')
-def admin_shipment():
-      if 'username' not in session or not session['is_admin']:
-        return redirect(url_for('index'))
-      return render_template('admin/shipment.html')
+      return render_template('admin/order_details.html', order=order, form=form, order_details=order_details)
 
 
 if __name__ == "__main__":

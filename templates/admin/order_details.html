@@ -16,7 +16,8 @@
               </ul>
             {% endif %}
           {% endwith %}
-        </div class="centerbutton">
+        </div>
+
         <div class="topnav">
           <a class="topnavbuttonhome" href="/admin/orders">Back to All Orders</a>
         </div>
@@ -55,6 +56,48 @@
         </form>
     </div>
     </div>
+
+    <!-- Displaying weirdly -->
+    <div>
+    <p><h2>Order Items</h2></p>
+
+    <table class='prdtable'>
+      <thead>
+      <tr>
+          <th>Product ID</th>
+          <th>Product Name</th>
+          <th>Brand</th>
+          <th>Product Category</th>
+          <th>UPC</th>
+          <th>Unit of Measure</th>
+          <th>Region</th>
+          <th>Country</th>
+          <th>Color</th>
+          <th>Quantity</th>
+          <th>Price</th>
+          <th>Discount</th>
+      </tr>
+      </thead>
+      <tbody>
+      {% for od in order_details %}
+      <tr>
+          <td>{{od['product_id']}}</td>
+          <td>{{od['product_name']}}</td>
+          <td>{{od['brand_name']}}</td>
+          <td>{{od['product_category']}}</td>
+          <td>{{od['upc']}}</td>
+          <td>{{od['unit_of_measure']}}</td>
+          <td>{{od['region']}}</td>
+          <td>{{od['country']}}</td>
+          <td>{{od['color']}}</td>
+          <td>{{od['quantity']}}</td>
+          <td>{{od['price']}}</td>
+          <td>{{od['discount']}}</td>
+      {% endfor %}
+      </tr>
+      </tbody>
+  </table>
+  </div>
 
 
 </html>
