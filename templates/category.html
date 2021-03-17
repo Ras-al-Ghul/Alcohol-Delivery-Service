@@ -8,8 +8,15 @@
     <body>
         <div class="topnav">
             <a class="topnavbuttonhome" href="/">Home</a>
-            <a class="topnavbutton" href="cart">Shopping Cart</a>
-            <a class="topnavbutton" href="login">Login/SignUp</a>
+            <a class="topnavbutton" href="/cart">Checkout {{itemcount}} items</a>
+            {% if login == None %}
+              <a class="topnavbutton" href="/login">Login/SignUp</a>
+            {% else %}
+              <a class="topnavbutton" href="/customer">Edit Profile</a>
+              <form method="POST" action="/logoutpost">
+                <button class="topnavbutton" style="color: #333">Logout</button>
+              </form>
+            {% endif %}
         </div>
           
         <h1 class='centerbutton'>{{category}}</h1>
@@ -27,6 +34,8 @@
                 <th>Description</th>
                 <th>Brand Name</th>
                 <th>Brand Description</th>
+                <th>In Cart</th>
+                <th>Buy</th>
             </tr>
             </thead>
             <tbody>
@@ -42,7 +51,12 @@
                 <td>{{p['description']}}</td>
                 <td>{{p['brand_name']}}</td>
                 <td>{{p['brand_description']}}</td>
-                
+                <td>{{p['count']}}</td>                
+                <td>
+                    <form method="POST" action="{{ url_for('category', category=category, product_id=p['product_id']) }}">
+                        <input class="editbtn" type="submit" value="Add to cart">
+                    </form>
+                </td>
             {% endfor %}
             </tr>
             </tbody>

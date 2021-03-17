@@ -20,8 +20,15 @@
   </div class="centerbutton">
   <div class="topnav">
     <a class="topnavbuttonhome" href="/">Home</a>
-    <a class="topnavbutton" href="cart">Shopping Cart</a>
-    <a class="topnavbutton" href="login">Login/SignUp</a>
+    <a class="topnavbutton" href="/cart">Checkout {{itemcount}} items</a>
+    {% if login == None %}
+      <a class="topnavbutton" href="/login">Login/SignUp</a>
+    {% else %}
+      <a class="topnavbutton" href="/customer">Edit Profile</a>
+      <form method="POST" action="/logoutpost">
+        <button class="topnavbutton" style="color: #333">Logout</button>
+      </form>
+    {% endif %}
   </div>
 
   <h1 class="centerbutton">Booze.io: Your favourite Alcohol Delivery Service!</h1>
