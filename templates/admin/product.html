@@ -9,6 +9,18 @@
         <h1 class='centerbutton'>Admin - Product Overview</h1>
 
         <div class="centerbutton">
+            {% with messages = get_flashed_messages() %}
+              {% if messages %}
+                <ul class=flashes>
+                  {% for message in messages %}
+                    {{ message }}
+                  {% endfor %}
+                </ul>
+              {% endif %}
+            {% endwith %}
+        </div>
+        
+        <div class="centerbutton">
         <button class="buttoncategory buttonc"><a href="add_product">Add New Product</a></button>
         <button class="buttoncategory buttonc"><a href="../">HomePage</a></button>
         <button class="buttoncategory buttonc"><a href="orders">All Orders</a></button>
