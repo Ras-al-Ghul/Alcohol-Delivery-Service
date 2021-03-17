@@ -319,7 +319,7 @@ def admin_orders():
       if 'username' not in session or (not session['is_admin']):
           return redirect(url_for('index'))
       orders = g.conn.execute(
-          'select o.order_id, o.order_number, o.customer_id, c.first_name, c.last_name, c.email, o.total, o.tax, o.discount, o.is_void, s.carrier, s.tracking_number, s.ship_date, s.delivered_date from orders o inner join customer c on c.customer_id = o.customer_id left join shipment s on s.order_id = o.order_id'
+          'select distinct o.order_id, o.order_number, o.customer_id, c.first_name, c.last_name, c.email, o.total, o.tax, o.discount, o.is_void, s.carrier, s.tracking_number, s.ship_date, s.delivered_date from orders o inner join customer c on c.customer_id = o.customer_id left join shipment s on s.order_id = o.order_id ORDER BY o.order_id DESC'
       ).fetchall()
       return render_template('admin/orders.html', orders=orders)
 
@@ -327,7 +327,7 @@ def admin_orders():
 def admin_order_details(order_id):
       if 'username' not in session or not session['is_admin']:
         return redirect(url_for('index'))
-      result = g.conn.execute('SELECT * FROM orders WHERE order_id = %s', [order_id])
+      result = g.conn.execute('select distinct o.order_id, o.order_number, o.customer_id, c.first_name, c.last_name, c.email, o.total, o.tax, o.discount, o.is_void, s.carrier, s.tracking_number, s.ship_date, s.delivered_date from orders o inner join customer c on c.customer_id = o.customer_id left join shipment s on s.order_id = o.order_id WHERE o.order_id = %s', [order_id])
       order = result.fetchone()
       return render_template('admin/order_details.html', order=order)
 

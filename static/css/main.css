@@ -92,3 +92,8 @@ html, body{
   font-weight: bold;
 }
 
+/* Order Details Page */
+.orddetheader{
+  font-size: 18pt;
+  color:lightskyblue;
+}
