@@ -186,6 +186,39 @@ def admin_product():
           'select p.product_name, p.product_category, p.cur_size, p.upc, p.unit_of_measure, p.buy_price_per_unit, p.item_price, p.package_quantity, p.region, p.country, p.color, p.description, b.brand_name, b.description as brand_description, b.brand_poc from product p left join brand b on b.brand_id = p.brand_id'
       ).fetchall()
       return render_template('admin/product.html', products=products)
+
+@app.route('/admin/add_product', methods=['POST', 'GET'])
+def admin_add_product():
+      if request.method == 'POST':
+        # Insert into brand table if brand does not already exist.
+        brand_name = request.form['brand_name']
+        brand_description = request.form['brand_description']
+        brand_poc = request.form['brand_poc']
+        g.conn.execute('INSERT INTO brand(brand_name, description, brand_poc) VALUES (%s, %s, %s) ON CONFLICT DO NOTHING', brand_name, brand_description, brand_poc)
+
+        brands = g.conn.execute('SELECT brand_id FROM brand WHERE brand_name = %s', brand_name)
+        for row in brands:
+              brand_id = row[0]
+              
+        # Insert into product table if product does not already exist.
+        product_name = request.form['product_name']
+        product_category = request.form['product_category']
+        cur_size = request.form['cur_size']
+        upc = request.form['upc']
+        unit_of_measure = request.form['unit_of_measure']
+        buy_price_per_unit = request.form['buy_price_per_unit']
+        item_price = request.form['item_price']
+        package_quantity = request.form['package_quantity']
+        region = request.form['region']
+        country = request.form['country']
+        color = request.form['color']
+        description = request.form['description']
+
+        g.conn.execute('INSERT INTO product(brand_id, product_name, product_category, cur_size, upc, unit_of_measure, buy_price_per_unit, item_price, package_quantity, region, country, color, description) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s) ON CONFLICT (product_name) DO NOTHING', brand_id, product_name, product_category, cur_size, upc, unit_of_measure, buy_price_per_unit, item_price, package_quantity, region, country, color, description)
+        
+        return redirect('/admin/product')
+
+      return render_template('admin/add_product.html')
   
 @app.route('/admin/shipment')
 def admin_shipment():
