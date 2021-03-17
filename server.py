@@ -9,10 +9,13 @@ A debugger such as "pdb" may be helpful for debugging.
 Read about it online.
 """
 import os
+
+# For password hashing
+import hashlib
   # accessible as a variable in index.html:
 from sqlalchemy import *
 from sqlalchemy.pool import NullPool
-from flask import Flask, request, render_template, g, redirect, Response
+from flask import Flask, flash, request, render_template, g, redirect, Response, url_for
 
 tmpl_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates')
 app = Flask(__name__, template_folder=tmpl_dir)
@@ -116,34 +119,7 @@ def index():
     brand.append(result['brand_name'])  # can also be accessed using result[0]
   cursor.close()
 
-  #
-  # Flask uses Jinja templates, which is an extension to HTML where you can
-  # pass data to a template and dynamically generate HTML based on the data
-  # (you can think of it as simple PHP)
-  # documentation: https://realpython.com/primer-on-jinja-templating/
-  #
-  # You can see an example template in templates/index.html
-  #
-  # context are the variables that are passed to the template.
-  # for example, "data" key in the context variable defined below will be 
-  # accessible as a variable in index.html:
-  #
-  #     # will print: [u'grace hopper', u'alan turing', u'ada lovelace']
-  #     <div>{{data}}</div>
-  #     
-  #     # creates a <div> tag for each element in data
-  #     # will print: 
-  #     #
-  #     #   <div>grace hopper</div>
-  #     #   <div>alan turing</div>
-  #     #   <div>ada lovelace</div>
-  #     #
-  #     {% for n in data %}
-  #     <div>{{n}}</div>
-  #     {% endfor %}
-  #
   context = dict(category=category, brand=brand)
-
 
   #
   # render_template looks in the templates/ folder for files.
@@ -151,31 +127,58 @@ def index():
   #
   return render_template("index.html", **context)
 
-#
-# This is an example of a different path.  You can see it at:
-# 
-#     localhost:8111/another
-#
-# Notice that the function name is another() rather than index()
-# The functions for each app.route need to have different names
-#
-@app.route('/another')
-def another():
-  return render_template("another.html")
+
+@app.route('/loginpost', methods=['POST'])
+def loginpost():
+  username = request.form['username']
+  password = hashlib.md5(request.form['password'].encode()).hexdigest()
+  # password = "md512cc15408468bd3663f4717e87acf491" # customer
+  password = "md55565b8e7bf495890ee95b3a0345d2c43" # employee
+  cursor = g.conn.execute("SELECT * FROM customer WHERE email = '{}' AND password = '{}'".format(username, password))
+  if cursor.rowcount:
+    cursor.close()
+    flash('Welcome to Booze.io!')
+    return redirect(url_for('index'))
+  else:
+    cursor.close()
+    cursor = g.conn.execute("SELECT * FROM employee WHERE email = '{}' AND password = '{}'".format(username, password))
+    if cursor.rowcount:
+      cursor.close()
+      flash('Welcome to Booze.io admin!')
+      return redirect(url_for('index'))
+  cursor.close()
+  flash('Wrong email or password. Click on signup to signup.')
+  return redirect(url_for('login'))
 
 
-# Example of adding new data to the database
-@app.route('/add', methods=['POST'])
-def add():
-  name = request.form['name']
-  g.conn.execute('INSERT INTO test(name) VALUES (%s)', name)
-  return redirect('/')
+@app.route('/signuppost', methods=['POST'])
+def signuppost():
+  username = request.form['username']
+  password1 = request.form['password1']
+  password2 = request.form['password2']
+  firstname = request.form['firstname']
+  lastname = request.form['lastname']
+  dob = request.form['dob']
+  if ((password1 != password2) or ('@' not in username or '.' not in username) or
+      (len(dob) != 10 or dob[4] != '-' or dob[7] != '-') or (dob[:4] > '2000')):
+    flash('One of your details is incorrect. Try again.')
+    return redirect(url_for('signup'))
+  passhash = hashlib.md5(password1.encode()).hexdigest()
+  g.conn.execute("INSERT INTO customer (first_name, last_name, email, dob, password) VALUES '{}', '{}', '{}', {}, '{}'"
+    .format(firstname, lastname, username, dob, passhash))
+  flash('Welcome to Booze.io')
+  return redirect(url_for('index'))
 
 
 @app.route('/login')
 def login():
-    abort(401)
-    this_is_never_executed()
+    return render_template('login.html')
+    
+
+@app.route('/signup')
+def signup():
+    return render_template('signup.html')
+
 
 @app.route('/admin/product')
 def admin_product():
@@ -212,6 +215,8 @@ if __name__ == "__main__":
 
     HOST, PORT = host, port
     print("running on %s:%d" % (HOST, PORT))
+    app.secret_key = 'secret_key'
+    app.config['SESSION_TYPE'] = 'filesystem'
     app.run(host=HOST, port=PORT, debug=debug, threaded=threaded)
 
   run()

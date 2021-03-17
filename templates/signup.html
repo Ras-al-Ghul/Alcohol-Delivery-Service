@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Signup to Booze.io</title>
+    <link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='css/main.css') }}">
+  </head>
+
+
+<body>
+
+  <form class="centerbutton" method="POST" action="/signuppost">
+    <p>
+      Email (this will be your username): <input type="text" name="username"> 
+      <br>
+      Password: <input type="password" name="password1">
+      <br>
+      Re-enter Password: <input type="password" name="password2">
+      <br>
+      First name: <input type="text" name="firstname"> 
+      <br>
+      Last name: <input type="text" name="lastname"> 
+      <br>
+      Date of birth yyyy-mm-dd (you certify that you are 21 years or older): <input type="text" name="dob"> 
+      <br>
+      <input type="submit" value="Signup">
+    </p>
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        <ul class=flashes>
+          {% for message in messages %}
+            {{ message }}
+          {% endfor %}
+        </ul>
+      {% endif %}
+    {% endwith %}
+  </form>
+
+</body>
+
+</html>
