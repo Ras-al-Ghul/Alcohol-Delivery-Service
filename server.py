@@ -284,11 +284,12 @@ def admin_edit_product(product_id):
 
       return render_template('admin/edit_product.html', form=form)
 
-@app.route('/admin/delete/<int:product_id>', methods=['POST'])
-def admin_delete_id(product_id):
-      product = g.conn.execute('SELECT * FROM product WHERE product_id = %s', product_id,)
-      product = product.fetchone()
-      # g.conn.execute('INSERT INTO brand(brand_name, description, brand_poc) VALUES (%s, %s, %s) ON CONFLICT DO NOTHING', brand_name, brand_description, brand_poc)
+@app.route('/admin/delete/<int:product_id>', methods=['POST',])
+def admin_delete_product(product_id):
+      g.conn.execute('DELETE FROM product WHERE product_id = %s', [product_id])
+      flash('Product Deleted', 'success')
+      return redirect('/admin/product')
+
 
 @app.route('/admin/shipment')
 def admin_shipment():

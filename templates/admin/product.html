@@ -50,7 +50,18 @@
                 <td>{{p['brand_name']}}</td>
                 <td>{{p['brand_description']}}</td>
                 <td>{{p['brand_poc']}}</td>
-                <td class="editbtn"><a href="{{ url_for('admin_edit_product', product_id=p['product_id']) }}">Edit</a></td>
+                <!-- <td class="editbtn"><a href="{{ url_for('admin_edit_product', product_id=p['product_id']) }}">Edit</a></td> -->
+                <td>
+                    <form action="{{ url_for('admin_edit_product', product_id=p['product_id']) }}">
+                        <input class="editbtn" type="submit" value="Edit">
+                      </form>
+                </td>
+                <!-- <td class="deletebtn"><a href="{{ url_for('admin_delete_product', product_id=p['product_id']) }}" method="post">Delete</a></td> -->
+                <td>
+                    <form action="{{ url_for('admin_delete_product', product_id=p['product_id']) }}" method="post">
+                        <input class="deletebtn" type="submit" value="Delete" onclick="return confirm('Are you sure?');">
+                      </form>
+                </td>
             {% endfor %}
             </tr>
             </tbody>
