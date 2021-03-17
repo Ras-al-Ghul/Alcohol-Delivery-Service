@@ -13,6 +13,7 @@ import os
 from sqlalchemy import *
 from sqlalchemy.pool import NullPool
 from flask import Flask, request, render_template, g, redirect, Response
+from wtforms import Form, StringField
 
 tmpl_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates')
 app = Flask(__name__, template_folder=tmpl_dir)
@@ -184,6 +185,9 @@ def admin_product():
       ).fetchall()
       return render_template('admin/product.html', products=products)
 
+class ProductForm(Form):
+      product_name = StringField('Product Name')
+
 @app.route('/admin/add_product', methods=['POST', 'GET'])
 def admin_add_product():
       if request.method == 'POST':
@@ -196,7 +200,7 @@ def admin_add_product():
         brands = g.conn.execute('SELECT brand_id FROM brand WHERE brand_name = %s', brand_name)
         for row in brands:
               brand_id = row[0]
-              
+
         # Insert into product table if product does not already exist.
         product_name = request.form['product_name']
         product_category = request.form['product_category']
@@ -216,6 +220,34 @@ def admin_add_product():
         return redirect('/admin/product')
 
       return render_template('admin/add_product.html')
+
+@app.route('/admin/edit/<int:product_id>', methods=['POST', 'GET'])
+def admin_edit_product(product_id):
+      product = g.conn.execute('SELECT * FROM product WHERE product_id = %s', product_id)
+      product = product.fetchone()
+
+      # Populate the form with existing data
+      form.product_name.data = product['title']
+
+      # if request.method == 'POST':
+      #     product_name = request.form['product_name']
+      #     product_category = request.form['product_category']
+      #     cur_size = request.form['cur_size']
+      #     upc = request.form['upc']
+      #     unit_of_measure = request.form['unit_of_measure']
+      #     buy_price_per_unit = request.form['buy_price_per_unit']
+      #     item_price = request.form['item_price']
+      #     package_quantity = request.form['package_quantity']
+      #     region = request.form['region']
+      #     country = request.form['country']
+      #     color = request.form['color']
+      #     description = request.form['description']
+
+      #     g.conn.execute('INSERT INTO product(brand_id, product_name, product_category, cur_size, upc, unit_of_measure, buy_price_per_unit, item_price, package_quantity, region, country, color, description) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s) ON CONFLICT (product_name) DO NOTHING', brand_id, product_name, product_category, cur_size, upc, unit_of_measure, buy_price_per_unit, item_price, package_quantity, region, country, color, description)
+
+      #     return redirect('/admin/product')
+
+      return render_template('admin/edit_product.html')
   
 @app.route('/admin/shipment')
 def admin_shipment():

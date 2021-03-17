@@ -1,17 +1,16 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <title>Admin - Add Product</title>
+        <title>Admin - Edit Product</title>
         <link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='css/main.css') }}">
     </head>
 
     <body>
-        <h1 class='centerbutton'>Add a New Product</h1>
+        <h1 class='centerbutton'>Edit an Existing Product</h1>
 
-        <form method="POST" action="/admin/add_product">
-        <p>Things highlighted in bold are required</p>
+        <form method="POST" action="/admin/edit_product">
         <p>
-            <b>Product Name:</b> <input type="text" name="product_name"><br>
+            Product Name: <input type="text" name="product_name"><br>
             Product Category: <input type="text" name="product_category"><br>
             Current Inventory: <input type="text" name="cur_size"><br>
             UPC: <input type="text" name="upc"><br>
@@ -23,11 +22,7 @@
             Country: <input type="text" name="country"><br>
             Color: <input type="text" name="color"><br>
             Description: <input type="text" name="description"><br>
-            <b>Brand Name:</b> <input type="text" name="brand_name"><br>
-            Brand Description: <input type="text" name="brand_description"><br>
-            Brand Point of Contact: <input type="text" name="brand_poc"><br><br>
-
-            <input type="submit" value="Add">
+            <input type="submit" value="Update">
         </p>
         </form>
         
