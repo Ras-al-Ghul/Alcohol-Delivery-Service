@@ -17,53 +17,39 @@
         <table class='prdtable'>
             <thead>
             <tr>
-                <th>Product Name</th>
-                <th>Product Category</th>
-                <th>Current Inventory</th>
-                <th>UPC</th>
-                <th>Unit of Measure</th>
-                <th>Buy Price</th>
-                <th>Item Price</th>
-                <th>Package Quantity</th>
-                <th>Region</th>
-                <th>Country</th>
-                <th>Color</th>
-                <th>Description</th>
-                <th>Brand Name</th>
-                <th>Brand Description</th>
-                <th>Point of Contact</th>
+                <th>Order ID</th>
+                <th>Order Number</th>
+                <th>Customer ID</th>
+                <th>Customer Name</th>
+                <th>Email</th>
+                <th>Order Total</th>
+                <th>Tax</th>
+                <th>Discount</th>
+                <th>Void</th>
+                <th>Carrier</th>
+                <th>Tracking Number</th>
+                <th>Ship Date</th>
+                <th>Delivered Date</th>
             </tr>
             </thead>
             <tbody>
-            {% for p in products %}
+            {% for o in orders %}
             <tr>
-                <td>{{p['product_name']}}</td>
-                <td>{{p['product_category']}}</td>
-                <td>{{p['cur_size']}}</td>
-                <td>{{p['upc']}}</td>
-                <td>{{p['unit_of_measure']}}</td>
-                <td>{{p['buy_price_per_unit']}}</td>
-                <td>{{p['item_price']}}</td>
-                <td>{{p['package_quantity']}}</td>
-                <td>{{p['region']}}</td>
-                <td>{{p['country']}}</td>
-                <td>{{p['color']}}</td>
-                <td>{{p['description']}}</td>
-                <td>{{p['brand_name']}}</td>
-                <td>{{p['brand_description']}}</td>
-                <td>{{p['brand_poc']}}</td>
-                <!-- <td class="editbtn"><a href="{{ url_for('admin_edit_product', product_id=p['product_id']) }}">Edit</a></td> -->
                 <td>
-                    <form action="{{ url_for('admin_edit_product', product_id=p['product_id']) }}">
-                        <input class="editbtn" type="submit" value="Edit">
-                      </form>
+                    <a href="{{ url_for('admin_order_details', order_id=o['order_id']) }}">{{ o.order_id }}</a>
                 </td>
-                <!-- <td class="deletebtn"><a href="{{ url_for('admin_delete_product', product_id=p['product_id']) }}" method="post">Delete</a></td> -->
-                <td>
-                    <form action="{{ url_for('admin_delete_product', product_id=p['product_id']) }}" method="post">
-                        <input class="deletebtn" type="submit" value="Delete" onclick="return confirm('Are you sure?');">
-                      </form>
-                </td>
+                <td>{{o['order_number']}}</td>
+                <td>{{o['customer_id']}}</td>
+                <td>{{o['first_name']}} {{o['last_name']}}</td>
+                <td>{{o['email']}}</td>
+                <td>{{o['total']}}</td>
+                <td>{{o['tax']}}</td>
+                <td>{{o['discount']}}</td>
+                <td>{{o['is_void']}}</td>
+                <td>{{o['carrier']}}</td>
+                <td>{{o['tracking_number']}}</td>
+                <td>{{o['ship_date']}}</td>
+                <td>{{o['delivered_date']}}</td>
             {% endfor %}
             </tr>
             </tbody>

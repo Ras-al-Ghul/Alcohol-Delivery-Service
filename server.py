@@ -303,7 +303,7 @@ def admin_edit_product(product_id):
           g.conn.execute('UPDATE product SET product_name=%s, product_category=%s, cur_size=%s, upc=%s, unit_of_measure=%s, buy_price_per_unit=%s, item_price=%s, package_quantity=%s, region=%s, country=%s, color=%s, description=%s WHERE product_id=%s', (product_name, product_category, cur_size, upc, unit_of_measure, buy_price_per_unit, item_price, package_quantity, region, country, color, description, product_id))
 
           return redirect('/admin/product')
-          # flash('Product Updated', 'success')
+          flash('Product Updated', 'success')
 
       return render_template('admin/edit_product.html', form=form)
 
@@ -312,14 +312,26 @@ def admin_delete_product(product_id):
       if 'username' not in session or not session['is_admin']:
         return redirect(url_for('index'))
       g.conn.execute('DELETE FROM product WHERE product_id = %s', [product_id])
-      # flash('Product Deleted', 'success')
+      flash('Product Deleted', 'success')
       return redirect('/admin/product')
 
+# Admin order and shipments overview
 @app.route('/admin/orders')
 def admin_orders():
+      if 'username' not in session or (not session['is_admin']):
+          return redirect(url_for('index'))
+      orders = g.conn.execute(
+          'select o.order_id, o.order_number, o.customer_id, c.first_name, c.last_name, c.email, o.total, o.tax, o.discount, o.is_void, s.carrier, s.tracking_number, s.ship_date, s.delivered_date from orders o inner join customer c on c.customer_id = o.customer_id left join shipment s on s.order_id = o.order_id'
+      ).fetchall()
+      return render_template('admin/orders.html', orders=orders)
+
+@app.route('/admin/orders/<int:order_id>')
+def admin_order_details(order_id):
       if 'username' not in session or not session['is_admin']:
         return redirect(url_for('index'))
-      return render_template('admin/orders.html')
+      result = g.conn.execute('SELECT * FROM orders WHERE order_id = %s', [order_id])
+      order = result.fetchone()
+      return render_template('admin/order_details.html', order=order)
 
 @app.route('/admin/shipment')
 def admin_shipment():
