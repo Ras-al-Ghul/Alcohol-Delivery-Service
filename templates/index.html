@@ -35,14 +35,18 @@
   <p class="centerbutton">Choose from your favourite types</p>
   <div class="centerbutton">
     {% for c in category %}
-    <button class="buttoncategory">{{c}}</button>
+      <form method="POST" action="{{url_for('category', category=c)}}" style="display: inline-block">
+        <button class="buttoncategory">{{c}}</button>
+      </form>
     {% endfor %}
   </div>
 
   <p class="centerbutton">Choose from your favourite brands</p>
   <div class="centerbutton">
     {% for b in brand %}
-    <button class="buttonbrand">{{b}}</button>
+      <form method="POST" action="{{url_for('brand', brand=b)}}" style="display: inline-block">
+        <button class="buttonbrand">{{b}}</button>
+      </form>
     {% endfor %}
   </div>
 

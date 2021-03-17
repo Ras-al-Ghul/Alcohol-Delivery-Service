@@ -54,30 +54,30 @@ engine = create_engine(DATABASEURI)
 
 @app.before_request
 def before_request():
-  """
-  This function is run at the beginning of every web request 
-  (every time you enter an address in the web browser).
-  We use it to setup a database connection that can be used throughout the request.
+    """
+    This function is run at the beginning of every web request 
+    (every time you enter an address in the web browser).
+    We use it to setup a database connection that can be used throughout the request.
 
-  The variable g is globally accessible.
-  """
-  try:
-    g.conn = engine.connect()
-  except:
-    print("uh oh, problem connecting to database")
-    import traceback; traceback.print_exc()
-    g.conn = None
+    The variable g is globally accessible.
+    """
+    try:
+      g.conn = engine.connect()
+    except:
+      print("uh oh, problem connecting to database")
+      import traceback; traceback.print_exc()
+      g.conn = None
 
 @app.teardown_request
 def teardown_request(exception):
-  """
-  At the end of the web request, this makes sure to close the database connection.
-  If you don't, the database could run out of memory!
-  """
-  try:
-    g.conn.close()
-  except Exception as e:
-    pass
+    """
+    At the end of the web request, this makes sure to close the database connection.
+    If you don't, the database could run out of memory!
+    """
+    try:
+      g.conn.close()
+    except Exception as e:
+      pass
 
 
 #
@@ -95,82 +95,82 @@ def teardown_request(exception):
 #
 @app.route('/')
 def index():
-  """
-  request is a special object that Flask provides to access web request information:
+    """
+    request is a special object that Flask provides to access web request information:
 
-  request.method:   "GET" or "POST"
-  request.form:     if the browser submitted a form, this contains the data in the form
-  request.args:     dictionary of URL arguments, e.g., {a:1, b:2} for http://localhost?a=1&b=2
+    request.method:   "GET" or "POST"
+    request.form:     if the browser submitted a form, this contains the data in the form
+    request.args:     dictionary of URL arguments, e.g., {a:1, b:2} for http://localhost?a=1&b=2
 
-  See its API: https://flask.palletsprojects.com/en/1.1.x/api/#incoming-request-data
-  """
-  cursor = g.conn.execute("SELECT DISTINCT product_category FROM product")
-  category = []
-  for result in cursor:
-    category.append(result['product_category'])  # can also be accessed using result[0]
-  cursor.close()
+    See its API: https://flask.palletsprojects.com/en/1.1.x/api/#incoming-request-data
+    """
+    cursor = g.conn.execute("SELECT DISTINCT product_category FROM product")
+    category = []
+    for result in cursor:
+      category.append(result['product_category'])  # can also be accessed using result[0]
+    cursor.close()
 
-  cursor = g.conn.execute("SELECT brand_name FROM brand")
-  brand = []
-  for result in cursor:
-    brand.append(result['brand_name'])  # can also be accessed using result[0]
-  cursor.close()
+    cursor = g.conn.execute("SELECT brand_name FROM brand")
+    brand = []
+    for result in cursor:
+      brand.append(result['brand_name'])  # can also be accessed using result[0]
+    cursor.close()
 
-  context = dict(category=category, brand=brand)
+    context = dict(category=category, brand=brand)
 
-  #
-  # render_template looks in the templates/ folder for files.
-  # for example, the below file reads template/index.html
-  #
-  return render_template("index.html", **context)
+    #
+    # render_template looks in the templates/ folder for files.
+    # for example, the below file reads template/index.html
+    #
+    return render_template("index.html", **context)
 
 
 @app.route('/loginpost', methods=['POST'])
 def loginpost():
-  username = request.form['username']
-  password = hashlib.md5(request.form['password'].encode()).hexdigest()
-  # password = "md512cc15408468bd3663f4717e87acf491" # customer
-  password = "md55565b8e7bf495890ee95b3a0345d2c43" # employee
-  cursor = g.conn.execute("SELECT * FROM customer WHERE email = '{}' AND password = '{}'".format(username, password))
-  if cursor.rowcount:
-    cursor.close()
-    session['username'] = username
-    session['is_admin'] = False
-    flash('Welcome to Booze.io!')
-    return redirect(url_for('index'))
-  else:
-    cursor.close()
-    cursor = g.conn.execute("SELECT * FROM employee WHERE email = '{}' AND password = '{}'".format(username, password))
+    username = request.form['username']
+    password = hashlib.md5(request.form['password'].encode()).hexdigest()
+    # password = "md512cc15408468bd3663f4717e87acf491" # customer
+    password = "md55565b8e7bf495890ee95b3a0345d2c43" # employee
+    cursor = g.conn.execute("SELECT * FROM customer WHERE email = '{}' AND password = '{}'".format(username, password))
     if cursor.rowcount:
       cursor.close()
       session['username'] = username
-      session['is_admin'] = True
-      flash('Welcome to Booze.io admin!')
-      return redirect(url_for('admin_product'))
-  cursor.close()
-  flash('Wrong email or password. Click on signup to signup.')
-  return redirect(url_for('login'))
+      session['is_admin'] = False
+      flash('Welcome to Booze.io!')
+      return redirect(url_for('index'))
+    else:
+      cursor.close()
+      cursor = g.conn.execute("SELECT * FROM employee WHERE email = '{}' AND password = '{}'".format(username, password))
+      if cursor.rowcount:
+        cursor.close()
+        session['username'] = username
+        session['is_admin'] = True
+        flash('Welcome to Booze.io admin!')
+        return redirect(url_for('admin_product'))
+    cursor.close()
+    flash('Wrong email or password. Click on signup to signup.')
+    return redirect(url_for('login'))
 
 
 @app.route('/signuppost', methods=['POST'])
 def signuppost():
-  username = request.form['username']
-  password1 = request.form['password1']
-  password2 = request.form['password2']
-  firstname = request.form['firstname']
-  lastname = request.form['lastname']
-  dob = request.form['dob']
-  if ((password1 != password2) or ('@' not in username or '.' not in username) or
-      (len(dob) != 10 or dob[4] != '-' or dob[7] != '-') or (dob[:4] > '2000')):
-    flash('One of your details is incorrect. Try again.')
-    return redirect(url_for('signup'))
-  passhash = hashlib.md5(password1.encode()).hexdigest()
-  g.conn.execute("INSERT INTO customer (first_name, last_name, email, dob, password) VALUES '{}', '{}', '{}', {}, '{}'"
-    .format(firstname, lastname, username, dob, passhash))
-  flash('Welcome to Booze.io')
-  session['username'] = username
-  session['is_admin'] = False
-  return redirect(url_for('index'))
+    username = request.form['username']
+    password1 = request.form['password1']
+    password2 = request.form['password2']
+    firstname = request.form['firstname']
+    lastname = request.form['lastname']
+    dob = request.form['dob']
+    if ((password1 != password2) or ('@' not in username or '.' not in username) or
+        (len(dob) != 10 or dob[4] != '-' or dob[7] != '-') or (dob[:4] > '2000')):
+      flash('One of your details is incorrect. Try again.')
+      return redirect(url_for('signup'))
+    passhash = hashlib.md5(password1.encode()).hexdigest()
+    g.conn.execute("INSERT INTO customer (first_name, last_name, email, dob, password) VALUES '{}', '{}', '{}', {}, '{}'"
+      .format(firstname, lastname, username, dob, passhash))
+    flash('Welcome to Booze.io')
+    session['username'] = username
+    session['is_admin'] = False
+    return redirect(url_for('index'))
 
 
 @app.route('/login')
@@ -181,6 +181,22 @@ def login():
 @app.route('/signup')
 def signup():
     return render_template('signup.html')
+
+
+@app.route('/category/<string:category>', methods=['POST', 'GET'])
+def category(category):
+    products = g.conn.execute(
+        "select p.product_name, p.unit_of_measure, p.item_price, p.package_quantity, p.region, p.country, p.color, p.description, b.brand_name, b.description as brand_description from product p left join brand b on b.brand_id = p.brand_id where p.product_category = '{}'".format(category)
+    ).fetchall()
+    return render_template('category.html', products=products, category=category)
+
+
+@app.route('/brand/<string:brand>', methods=['POST', 'GET'])
+def brand(brand):
+    products = g.conn.execute(
+        "select p.product_name, p.product_category, p.unit_of_measure, p.item_price, p.package_quantity, p.region, p.country, p.color, p.description, b.brand_name, b.description as brand_description from product p left join brand b on b.brand_id = p.brand_id where b.brand_name = '{}'".format(brand)
+    ).fetchall()
+    return render_template('brand.html', products=products, brand=brand)
 
 
 @app.route('/admin/product')

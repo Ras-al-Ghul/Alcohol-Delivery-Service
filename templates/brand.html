@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>{{brand}}</title>
+        <link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='css/main.css') }}">
+    </head>
+
+    <body>
+        <div class="topnav">
+            <a class="topnavbuttonhome" href="/">Home</a>
+            <a class="topnavbutton" href="cart">Shopping Cart</a>
+            <a class="topnavbutton" href="login">Login/SignUp</a>
+        </div>
+          
+        <h1 class='centerbutton'>{{brand}}</h1>
+
+        <table class='prdtable'>
+            <thead>
+            <tr>
+                <th>Product Name</th>
+                <th>Product Category</th>
+                <th>Unit of Measure</th>
+                <th>Item Price</th>
+                <th>Package Quantity</th>
+                <th>Region</th>
+                <th>Country</th>
+                <th>Color</th>
+                <th>Description</th>
+                <th>Brand Name</th>
+                <th>Brand Description</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for p in products %}
+            <tr>
+                <td>{{p['product_name']}}</td>
+                <td>{{p['product_category']}}</td>
+                <td>{{p['unit_of_measure']}}</td>
+                <td>${{p['item_price']}}</td>
+                <td>{{p['package_quantity']}}</td>
+                <td>{{p['region']}}</td>
+                <td>{{p['country']}}</td>
+                <td>{{p['color']}}</td>
+                <td>{{p['description']}}</td>
+                <td>{{p['brand_name']}}</td>
+                <td>{{p['brand_description']}}</td>
+                
+            {% endfor %}
+            </tr>
+            </tbody>
+        </table>
+        
+    </body>
+
+</html>
