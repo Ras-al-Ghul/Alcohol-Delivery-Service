@@ -128,9 +128,7 @@ def index():
 @app.route('/loginpost', methods=['POST'])
 def loginpost():
     username = request.form['username']
-    password = hashlib.md5(request.form['password'].encode()).hexdigest()
-    # password = "md512cc15408468bd3663f4717e87acf491" # customer
-    password = "md55565b8e7bf495890ee95b3a0345d2c43" # employee
+    password = "md5" + hashlib.md5(request.form['password'].encode()).hexdigest()
     cursor = g.conn.execute("SELECT * FROM customer WHERE email = '{}' AND password = '{}'".format(username, password))
     if cursor.rowcount:
       cursor.close()
