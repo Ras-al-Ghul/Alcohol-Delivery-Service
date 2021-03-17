@@ -216,18 +216,38 @@ def signup():
 @app.route('/category/<string:category>', methods=['POST', 'GET'])
 def category(category):
     initialize_cart()
+    if 'product_id' in request.args:
+        product_id = request.args['product_id']
+        if product_id in session['cart']:
+            session['cart'][product_id] += 1
+        else:
+            session['cart'][product_id] = 1
+        session['itemcount'] += 1
     products = g.conn.execute(
-        "select p.product_name, p.unit_of_measure, p.item_price, p.package_quantity, p.region, p.country, p.color, p.description, b.brand_name, b.description as brand_description from product p left join brand b on b.brand_id = p.brand_id where p.product_category = '{}'".format(category)
+        "select p.product_id, p.product_name, p.unit_of_measure, p.item_price, p.package_quantity, p.region, p.country, p.color, p.description, b.brand_name, b.description as brand_description from product p left join brand b on b.brand_id = p.brand_id where p.product_category = '{}'".format(category)
     ).fetchall()
-    return render_template('category.html', products=products, category=category, login=get_login())
+    products = [dict(row) for row in products]
+    for product in products:
+        product['count'] = session['cart'][str(product['product_id'])] if str(product['product_id']) in session['cart'] else 0
+    return render_template('category.html', products=products, category=category, itemcount=session['itemcount'], login=get_login())
 
 
 @app.route('/brand/<string:brand>', methods=['POST', 'GET'])
 def brand(brand):
     initialize_cart()
+    if 'product_id' in request.args:
+        product_id = request.args['product_id']
+        if product_id in session['cart']:
+            session['cart'][product_id] += 1
+        else:
+            session['cart'][product_id] = 1
+        session['itemcount'] += 1
     products = g.conn.execute(
-        "select p.product_name, p.product_category, p.unit_of_measure, p.item_price, p.package_quantity, p.region, p.country, p.color, p.description, b.brand_name, b.description as brand_description from product p left join brand b on b.brand_id = p.brand_id where b.brand_name = '{}'".format(brand)
+        "select p.product_id, p.product_name, p.product_category, p.unit_of_measure, p.item_price, p.package_quantity, p.region, p.country, p.color, p.description, b.brand_name, b.description as brand_description from product p left join brand b on b.brand_id = p.brand_id where b.brand_name = '{}'".format(brand)
     ).fetchall()
+    products = [dict(row) for row in products]
+    for product in products:
+        product['count'] = session['cart'][str(product['product_id'])] if str(product['product_id']) in session['cart'] else 0
     return render_template('brand.html', products=products, brand=brand, itemcount=session['itemcount'], login=get_login())
 
 
