@@ -7,18 +7,20 @@
 
     <body>
         <h1 class='centerbutton'>Add a New Product</h1>
+        <a href="admin/product">Return to All Products</a>
 
         <form method="POST" action="/admin/add_product">
         <p>Things highlighted in bold are required</p>
         <p>
             <b>Product Name:</b> <input type="text" name="product_name"><br>
             Product Category: <input type="text" name="product_category"><br>
-            Current Inventory: <input type="text" name="cur_size"><br>
-            UPC: <input type="text" name="upc"><br>
+            <b>Current Inventory</b>: <input type="text" name="cur_size"><br>
+            <b>UPC</b>: <input type="text" name="upc"><br>
+            <i>Must be unique UPC</i><br>
             Unit of Measure: <input type="text" name="unit_of_measure"><br>
-            Buy Price: <input type="text" name="buy_price_per_unit"><br>
-            Item Price: <input type="text" name="item_price"><br>
-            Package Quantity: <input type="text" name="package_quantity"><br>
+            <b>Buy Price</b>: <input type="text" name="buy_price_per_unit"><br>
+            <b>Item Price</b>: <input type="text" name="item_price"><br>
+            <b>Package Quantity</b>: <input type="text" name="package_quantity"><br>
             Region: <input type="text" name="region"><br>
             Country: <input type="text" name="country"><br>
             Color: <input type="text" name="color"><br>

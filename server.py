@@ -211,12 +211,12 @@ def admin_product():
 class ProductForm(Form):
       product_name = StringField('Product Name: ')
       product_category = StringField('Product Category: ')
-      cur_size = IntegerField('Current Inventory: ')
+      cur_size = StringField('Current Inventory: ')
       upc = StringField('UPC: ')
       unit_of_measure = StringField('Unit of Measure: ')
       buy_price_per_unit = DecimalField('Buy Price: ')
-      item_price = DecimalField('Item Price: ')
-      package_quantity = IntegerField('Package Quantity: ')
+      item_price = StringField('Item Price: ')
+      package_quantity = StringField('Package Quantity: ')
       region = StringField('Region: ')
       country = StringField('Country: ')
       color = StringField('Color: ')
@@ -302,9 +302,8 @@ def admin_edit_product(product_id):
 
           g.conn.execute('UPDATE product SET product_name=%s, product_category=%s, cur_size=%s, upc=%s, unit_of_measure=%s, buy_price_per_unit=%s, item_price=%s, package_quantity=%s, region=%s, country=%s, color=%s, description=%s WHERE product_id=%s', (product_name, product_category, cur_size, upc, unit_of_measure, buy_price_per_unit, item_price, package_quantity, region, country, color, description, product_id))
 
-          flash('Product Updated', 'success')
-
           return redirect('/admin/product')
+          # flash('Product Updated', 'success')
 
       return render_template('admin/edit_product.html', form=form)
 
@@ -313,9 +312,14 @@ def admin_delete_product(product_id):
       if 'username' not in session or not session['is_admin']:
         return redirect(url_for('index'))
       g.conn.execute('DELETE FROM product WHERE product_id = %s', [product_id])
-      flash('Product Deleted', 'success')
+      # flash('Product Deleted', 'success')
       return redirect('/admin/product')
 
+@app.route('/admin/orders')
+def admin_orders():
+      if 'username' not in session or not session['is_admin']:
+        return redirect(url_for('index'))
+      return render_template('admin/orders.html')
 
 @app.route('/admin/shipment')
 def admin_shipment():
