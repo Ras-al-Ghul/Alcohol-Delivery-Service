@@ -80,6 +80,18 @@ def teardown_request(exception):
       pass
 
 
+def initialize_cart():
+    if 'cart' not in session:
+        session['cart'] = dict()
+        session['itemcount'] = 0
+
+
+def get_login():
+    if 'username' in session:
+        return session['username']
+    else:
+        None
+
 #
 # @app.route is a decorator around index() that means:
 #   run index() whenever the user tries to access the "/" path using a GET request
@@ -104,6 +116,7 @@ def index():
 
     See its API: https://flask.palletsprojects.com/en/1.1.x/api/#incoming-request-data
     """
+    initialize_cart()
     cursor = g.conn.execute("SELECT DISTINCT product_category FROM product")
     category = []
     for result in cursor:
@@ -116,7 +129,7 @@ def index():
       brand.append(result['brand_name'])  # can also be accessed using result[0]
     cursor.close()
 
-    context = dict(category=category, brand=brand)
+    context = dict(category=category, brand=brand, itemcount=session['itemcount'], login=get_login())
 
     #
     # render_template looks in the templates/ folder for files.
@@ -171,30 +184,51 @@ def signuppost():
     return redirect(url_for('index'))
 
 
+@app.route('/logoutpost', methods=['POST'])
+def logoutpost():
+    for k in ('username', 'is_admin', 'cart', 'itemcount'):
+        try:
+            del session[k]
+        except KeyError:
+            continue
+    flash('You\'ve successfully signed out.')
+    return redirect(url_for('index'))
+
+
 @app.route('/login')
 def login():
-    return render_template('login.html')
+    initialize_cart()
+    if get_login():
+        flash('You\'re already logged in')
+        return redirect(url_for('index'))
+    return render_template('login.html', itemcount=session['itemcount'], login=get_login())
     
 
 @app.route('/signup')
 def signup():
-    return render_template('signup.html')
+    initialize_cart()
+    if get_login():
+        flash('You already have an account, logout to create another one')
+        return redirect(url_for('index'))
+    return render_template('signup.html', itemcount=session['itemcount'], login=get_login())
 
 
 @app.route('/category/<string:category>', methods=['POST', 'GET'])
 def category(category):
+    initialize_cart()
     products = g.conn.execute(
         "select p.product_name, p.unit_of_measure, p.item_price, p.package_quantity, p.region, p.country, p.color, p.description, b.brand_name, b.description as brand_description from product p left join brand b on b.brand_id = p.brand_id where p.product_category = '{}'".format(category)
     ).fetchall()
-    return render_template('category.html', products=products, category=category)
+    return render_template('category.html', products=products, category=category, login=get_login())
 
 
 @app.route('/brand/<string:brand>', methods=['POST', 'GET'])
 def brand(brand):
+    initialize_cart()
     products = g.conn.execute(
         "select p.product_name, p.product_category, p.unit_of_measure, p.item_price, p.package_quantity, p.region, p.country, p.color, p.description, b.brand_name, b.description as brand_description from product p left join brand b on b.brand_id = p.brand_id where b.brand_name = '{}'".format(brand)
     ).fetchall()
-    return render_template('brand.html', products=products, brand=brand)
+    return render_template('brand.html', products=products, brand=brand, itemcount=session['itemcount'], login=get_login())
 
 
 @app.route('/admin/product')
@@ -204,7 +238,7 @@ def admin_product():
       products = g.conn.execute(
           'select p.product_id, p.product_name, p.product_category, p.cur_size, p.upc, p.unit_of_measure, p.buy_price_per_unit, p.item_price, p.package_quantity, p.region, p.country, p.color, p.description, b.brand_id, b.brand_name, b.description as brand_description, b.brand_poc from product p left join brand b on b.brand_id = p.brand_id'
       ).fetchall()
-      return render_template('admin/product.html', products=products)
+      return render_template('admin/product.html', products=products, itemcount=session['itemcount'])
 
 class ProductForm(Form):
       product_name = StringField('Product Name: ')
