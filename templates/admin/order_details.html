@@ -18,25 +18,43 @@
           {% endwith %}
         </div class="centerbutton">
         <div class="topnav">
-          <a class="topnavbuttonhome" href="admin/orders">Back to All Orders</a>
+          <a class="topnavbuttonhome" href="/admin/orders">Back to All Orders</a>
         </div>
       
         <h1 class="centerbutton">Admin - Order {{ order.order_number }} Details</h1>
-
+    
+    <div class="orddetcontainer">
     <div class="orddetheader">
         Order Number: {{ order.order_number }}<br>
         Customer ID: {{ order.customer_id }}<br>
         Customer Name: {{ order.first_name }} {{ order.last_name }}<br>
-        Customer Email: {{ order.customer_email }}<br>
+        Customer Email: {{ order.email }}<br>
         Order Total: {{ order.total }}<br>
         Order Tax: {{ order.tax }}<br>
         Order Discount: {{ order.discount }}<br>
-        
+        {% if order.is_void == True %}
+            *****ORDER VOIDED*****<br>
+        {% endif %}
+        {% if order.is_void == False %}
+            Carrier: {{ order.carrier }}<br>
+            Tracking Number: {{ order.tracking_number }}<br>
+            Ship Date: {{ order.ship_date }}<br>
+            Delivered Date: {{ order.delivered_date }}<br>
+        {% endif %}
+    </div>
+    <div class="orddetheader">
+        {% from "_formhelper.html" import render_field %}
+
+        <form method="POST" action="">
+            {{render_field(form.carrier)}} <br>
+            {{render_field(form.tracking_number)}} <br>
+            {{render_field(form.ship_date)}} <br>
+            {{render_field(form.delivered_date)}} <br>
+            <input type="submit" value="Update">
+            <p>Ship Date must be less than delivered date.</p>
+        </form>
+    </div>
     </div>
 
 
 </html>
-
-
-
-select distinct o.order_id, o.order_number, o.customer_id, c.first_name, c.last_name, c.email, o.total, o.tax, o.discount, o.is_void, s.carrier, s.tracking_number, s.ship_date, s.delivered_date from orders o inner join customer c on c.customer_id = o.customer_id left join shipment s on s.order_id = o.order_id

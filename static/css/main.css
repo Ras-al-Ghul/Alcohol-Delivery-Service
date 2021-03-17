@@ -51,7 +51,9 @@ html, body{
   .prdtable{
       text-align: center;
       border-collapse: collapse;
-      margin: 25px 0;
+      margin: 25px;
+      margin-left: auto;
+      margin-right: auto;
       font-size: 0.9em;
       font-family: sans-serif;
       min-width: 400px;
@@ -93,7 +95,17 @@ html, body{
 }
 
 /* Order Details Page */
+.orddetcontainer{
+  padding: 20px;
+}
 .orddetheader{
   font-size: 18pt;
-  color:lightskyblue;
+  float: left;
+  color: darkblue;
+  text-align: center;
+  font-weight: bold;
+  width: 45%;
+  padding: 20px;
+  border: 3px solid gray;
 }
+

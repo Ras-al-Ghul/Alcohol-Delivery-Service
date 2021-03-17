@@ -17,7 +17,7 @@ from sqlalchemy import *
 from sqlalchemy.pool import NullPool
 from flask import Flask, flash, request, render_template, g, redirect, Response, session, url_for
 from sqlalchemy.sql.selectable import Select
-from wtforms import Form, StringField, SubmitField, DecimalField, IntegerField
+from wtforms import Form, StringField, SubmitField, DecimalField, IntegerField, DateField
 
 tmpl_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates')
 app = Flask(__name__, template_folder=tmpl_dir)
@@ -354,8 +354,8 @@ def admin_edit_product(product_id):
 
           g.conn.execute('UPDATE product SET product_name=%s, product_category=%s, cur_size=%s, upc=%s, unit_of_measure=%s, buy_price_per_unit=%s, item_price=%s, package_quantity=%s, region=%s, country=%s, color=%s, description=%s WHERE product_id=%s', (product_name, product_category, cur_size, upc, unit_of_measure, buy_price_per_unit, item_price, package_quantity, region, country, color, description, product_id))
 
-          return redirect('/admin/product')
           flash('Product Updated', 'success')
+          return redirect('/admin/product')
 
       return render_template('admin/edit_product.html', form=form)
 
@@ -368,6 +368,13 @@ def admin_delete_product(product_id):
       return redirect('/admin/product')
 
 # Admin order and shipments overview
+class ShipmentForm(Form):
+      carrier = StringField('Carrier: ')
+      tracking_number = StringField('Tracking Number: ')
+      ship_date = DateField('Ship Date: ')
+      delivered_date = DateField('Delivered Date: ')
+      submit = SubmitField('Submit')
+
 @app.route('/admin/orders')
 def admin_orders():
       if 'username' not in session or (not session['is_admin']):
@@ -377,13 +384,35 @@ def admin_orders():
       ).fetchall()
       return render_template('admin/orders.html', orders=orders)
 
-@app.route('/admin/orders/<int:order_id>')
+# Admin View for order details
+@app.route('/admin/orders/<int:order_id>', methods=['POST','GET'])
 def admin_order_details(order_id):
       if 'username' not in session or not session['is_admin']:
         return redirect(url_for('index'))
+      
       result = g.conn.execute('select distinct o.order_id, o.order_number, o.customer_id, c.first_name, c.last_name, c.email, o.total, o.tax, o.discount, o.is_void, s.carrier, s.tracking_number, s.ship_date, s.delivered_date from orders o inner join customer c on c.customer_id = o.customer_id left join shipment s on s.order_id = o.order_id WHERE o.order_id = %s', [order_id])
       order = result.fetchone()
-      return render_template('admin/order_details.html', order=order)
+
+      # Get Form
+      form = ShipmentForm(request.form)
+
+      # Populate the form with existing data
+      form.carrier.data = order['carrier']
+      form.tracking_number.data = order['tracking_number']
+      form.ship_date.data = order['ship_date']
+      form.delivered_date.data = order['delivered_date']
+
+      if request.method == 'POST':
+          carrier = request.form['carrier']
+          tracking_number = request.form['tracking_number']
+          ship_date = request.form['ship_date']
+          delivered_date = request.form['delivered_date']
+
+          g.conn.execute('UPDATE shipment SET carrier=%s, tracking_number=%s, ship_date=%s, delivered_date=%s WHERE order_id=%s', (carrier, tracking_number, ship_date, delivered_date, order_id))
+
+          flash('Shipment Information Updated', 'success')
+
+      return render_template('admin/order_details.html', order=order, form=form)
 
 @app.route('/admin/shipment')
 def admin_shipment():
