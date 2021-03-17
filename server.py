@@ -146,7 +146,7 @@ def loginpost():
       session['username'] = username
       session['is_admin'] = True
       flash('Welcome to Booze.io admin!')
-      return redirect(url_for('index'))
+      return redirect(url_for('admin_product'))
   cursor.close()
   flash('Wrong email or password. Click on signup to signup.')
   return redirect(url_for('login'))
