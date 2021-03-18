@@ -18,7 +18,12 @@
   </div>
   {% from "_formhelper.html" import render_field %}
   <form class="centerbutton" method="POST" action="/signuppost">
-      {{render_field(form.email)}} <br>
+      {% if edit == False %}
+        {{render_field(form.email)}} <br>
+      {% else %}
+        Email-Username (this cannot be modified): {{form.email.data}} </br>
+        <input type="hidden" name="email" value="{{form.email.data}}">
+      {% endif %}
       {{render_field(form.password)}} <br>
       {{render_field(form.reenterpassword)}} <br>
       {{render_field(form.firstname)}} <br>
