@@ -30,9 +30,6 @@
         Customer ID: {{ order.customer_id }}<br>
         Customer Name: {{ order.first_name }} {{ order.last_name }}<br>
         Customer Email: {{ order.email }}<br>
-        Order Total: {{ order.total }}<br>
-        Order Tax: {{ order.tax }}<br>
-        Order Discount: {{ order.discount }}<br>
         {% if order.is_void == True %}
             *****ORDER VOIDED*****<br>
         {% endif %}
@@ -53,15 +50,11 @@
             {{render_field(form.delivered_date)}} <br>
             <input type="submit" value="Update">
             <p>Ship Date must be less than delivered date.</p>
-            <br>
-            <br>
-            <br>
         </form>
     </div>
     </div>
 
-    <!-- Displaying weirdly -->
-    <div>
+    <div><br><br>
     <p><h2 class="centerbutton">Order Items</h2></p>
 
     <table class='prdtable'>
@@ -101,6 +94,16 @@
       </tbody>
   </table>
   </div>
+
+  <div class="centerbutton">
+    Order Total: {{ order.total }}<br>
+    Order Tax: {{ order.tax }}<br>
+    Order Discount: {{ order.discount }}<br>
+    Payment Method: {{ order.payment_method }}<br>
+    Payment Status: {{ order.payment_status }}<br>
+    Credit Card: {{ order.credit_card }}<br>
+    Expiration Date: {{ order.expiration_date }}
+</div>
 
 
 </html>
