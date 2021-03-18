@@ -270,9 +270,47 @@ def cart():
                                         tax=tax, total_post_tax=total_post_tax)
 
 
-@app.route('/ship')
-def ship():
-    pass
+# Signup and edit
+class AddressForm(Form):
+      addressid = StringField('Address ID: ')
+      firstname = StringField('First name: ')
+      lastname = StringField('Last name: ')
+      address1 = StringField('Address Line 1: ')
+      address2 = StringField('Address Line 2: ')
+      city = StringField('City: ')
+      state = StringField('State (XX): ')
+      zips = StringField('Zip: ')
+      phone = StringField('Phone (xxx-xxx-xxxx): ')
+      company = StringField('Company: ')
+
+@app.route('/address', methods=['POST', 'GET'])
+def address():
+      if not get_login():
+          return redirect(url_for('index'))
+    
+      if request.method == 'POST':
+          pass
+      
+      user = g.conn.execute("SELECT customer_id FROM customer WHERE email = '{}'".format(get_login())).fetchone()
+      addresses = g.conn.execute("SELECT * from address, customer_lives WHERE address.address_id = customer_lives.address_id AND customer_lives.customer_id = {}".format(user['customer_id'])).fetchall()
+      addresses_list = []
+      for a in addresses:
+          row = dict(a)
+          form = AddressForm(request.form)
+          form.addressid.data = row['address_id']
+          form.firstname.data = row['first_name']
+          form.lastname.data = row['last_name']
+          form.address1.data = row['address1']
+          form.address2.data = row['address2']
+          form.city.data = row['city']
+          form.state.data = row['state']
+          form.zips.data = row['zip']
+          form.phone.data = row['phone']
+          form.company.data = row['company']
+          addresses_list.append(form)
+
+      return render_template('address.html', addresses_list=addresses_list, userid=user['customer_id'])
+
 
 class PaymentForm(Form):
       payment_method = SelectField('Payment Method: ', choices=[(1, 'CARD'), (2, 'BANK')])
@@ -283,7 +321,7 @@ class PaymentForm(Form):
 
 @app.route('/payment', methods=['POST', 'GET'])
 def payment():
-      if 'username' not in session or not session['is_admin']:
+      if 'username' not in session and not session['is_admin']:
             return redirect(url_for('index'))
 
       form = PaymentForm(request.form)

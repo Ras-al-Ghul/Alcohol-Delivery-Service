@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Addresses</title>
+        <link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='css/main.css') }}">
+    </head>
+
+    <body>
+        <div class="centerbutton">
+            {% with messages = get_flashed_messages() %}
+              {% if messages %}
+                <ul class=flashes>
+                  {% for message in messages %}
+                    {{ message }}
+                  {% endfor %}
+                </ul>
+              {% endif %}
+            {% endwith %}
+          </div>
+
+          <div class="topnav">
+            <a class="topnavbuttonhome" href="/">Home</a>
+            <a class="topnavbuttonhome" href="/orders">Orders</a>
+            <a class="topnavbutton" href="/cart">Checkout {{itemcount}} items</a>
+            <a class="topnavbutton" href="/signup">Edit Profile</a>
+            <form method="POST" action="/logoutpost">
+              <button class="topnavbutton" style="color: #333">Logout</button>
+            </form>
+          </div>
+
+        <h1 class='centerbutton'>Addresses</h1>
+
+        <table class='prdtable'>
+          <thead>
+            <tr>
+                <th>First Name</th>
+                <th>Last Name</th>
+                <th>Addres1</th>
+                <th>Address2</th>
+                <th>City</th>
+                <th>State (XX)</th>
+                <th>Zip</th>
+                <th>Phone (XXX-XXX-XXXX)</th>
+                <th>Company</th>
+                <th>Shipping</th>
+                <th>Billing</th>
+                <th>Edit</th>
+            </tr>
+          </thead>
+
+          {% from "_formhelper.html" import render_field %}
+          <tbody>
+            {% for addr in addresses_list %}
+            <tr>
+              <td>{{addr.firstname}}</td>
+              <td>{{addr.lastname}}</td>
+              <td>{{addr.address1}}</td>
+              <td>{{addr.address2}}</td>
+              <td>{{addr.city}}</td>
+              <td>{{addr.state}}</td>
+              <td>{{addr.zips}}</td>
+              <td>{{addr.phone}}</td>
+              <td>{{addr.company}}</td>
+              <td>
+              </td>
+              <td>
+              </td>
+              <td>
+                <form class="centerbutton" method="POST" action="/address">
+                  <button class="editbtn" type="submit" name="address_id" value="{{addr.addressid.data}}">Edit</button>
+                </form>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+    </body>
+
+</html>
