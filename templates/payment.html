@@ -1,1 +1,33 @@
-Customer payment
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Payment</title>
+        <link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='css/main.css') }}">
+    </head>
+
+    <body>
+        <div class="topnav">
+            <a class="topnavbuttonhome" href="/">Home</a>
+            <a class="topnavbuttonhome" href="/orders">Orders</a>
+            <a class="topnavbutton" href="/cart">Checkout {{itemcount}} items</a>
+            <a class="topnavbutton" href="/signup">Edit Profile</a>
+            <form method="POST" action="/logoutpost">
+              <button class="topnavbutton" style="color: #333">Logout</button>
+            </form>
+        </div>
+
+        <h1 class='centerbutton'>Payment</h1>
+
+        {% from "_formhelper.html" import render_field %}
+
+        <form method="POST" action="" class="payment">
+            {{render_field(form.payment_method)}} <br>
+            {{render_field(form.credit_card)}} <br>
+            {{render_field(form.expiration_date)}} <br>
+            {{render_field(form.cvv2)}} <br>
+            <input type="submit" value="Pay">
+            
+        </form>
+    </body>
+
+</html>

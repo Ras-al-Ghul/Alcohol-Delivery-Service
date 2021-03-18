@@ -17,7 +17,7 @@ from sqlalchemy import *
 from sqlalchemy.pool import NullPool
 from flask import Flask, flash, request, render_template, g, redirect, Response, session, url_for
 from sqlalchemy.sql.selectable import Select
-from wtforms import Form, StringField, SubmitField, DecimalField, IntegerField, DateField, PasswordField
+from wtforms import Form, StringField, SubmitField, DecimalField, DateField, PasswordField, SelectField
 
 tmpl_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates')
 app = Flask(__name__, template_folder=tmpl_dir)
@@ -274,10 +274,63 @@ def cart():
 def ship():
     pass
 
+class PaymentForm(Form):
+      payment_method = SelectField('Payment Method: ', choices=[(1, 'CARD'), (2, 'BANK')])
+      credit_card = StringField('Credit Card Number: ')
+      expiration_date = StringField('Expiration Date (YYYY-MM-DD): ')
+      cvv2 = StringField('CVV2: ')
+      submit = SubmitField('Submit')
+
 @app.route('/payment', methods=['POST', 'GET'])
 def payment():
-      pass
+      if 'username' not in session or not session['is_admin']:
+            return redirect(url_for('index'))
 
+      form = PaymentForm(request.form)
+
+      if request.method == 'POST':
+        payment_method = request.form['payment_method']
+        credit_card = request.form['credit_card']
+        expiration_date = request.form['expiration_date']
+        cvv2 = request.form['cvv2']
+
+        flash('Payment Successful', 'success')
+        return redirect('/orders')
+      
+      return render_template('payment.html', form=form)
+
+@app.route('/orders')
+def orders():
+    initialize_cart()
+    if not get_login():
+        flash('Login to see order history')
+        return redirect(url_for('login'))
+
+    result = g.conn.execute('select * from customer where email = %s', [get_login()])
+    customer = result.fetchone()
+    customer_id = customer.customer_id
+
+    o = g.conn.execute('select distinct o.order_id, o.order_number, o.customer_id, o.total, o.tax, o.discount, o.is_void, s.carrier, s.tracking_number, s.ship_date, s.delivered_date from orders o left join shipment s on s.order_id = o.order_id WHERE o.customer_id = %s ORDER BY o.order_id DESC', [customer_id])
+    orders = o.fetchall()
+
+    return render_template('orders.html', itemcount=session['itemcount'], login=get_login(), customer=customer, orders=orders)
+      
+@app.route('/order/<int:order_id>')
+def order_details(order_id):
+    initialize_cart()
+
+    if not get_login():
+        flash('Login to see order details')
+        return redirect(url_for('login'))
+
+    result = g.conn.execute('select distinct o.order_id, o.order_number, o.customer_id, c.first_name, c.last_name, c.email, o.total, o.tax, o.discount, o.is_void, s.carrier, s.tracking_number, s.ship_date, s.delivered_date, p.payment_method, p.payment_status, p.credit_card, p.expiration_date from orders o inner join customer c on c.customer_id = o.customer_id left join shipment s on s.order_id = o.order_id left join payment p on p.order_id = o.order_id WHERE o.order_id = %s', [order_id])
+    order = result.fetchone()
+
+    od = g.conn.execute('select distinct od.order_id, od.product_id, od.quantity, od.price, od.discount, p.brand_id, p.product_name, b.brand_name, p.product_category, p.upc, p.unit_of_measure, p.region, p.country, p.color from order_items od inner join product p on p.product_id = od.product_id left join brand b on b.brand_id = p.brand_id WHERE od.order_id = %s', [order_id])
+    order_details = od.fetchall()
+
+    return render_template('order_details.html', login=get_login(), order=order, order_details=order_details)
+      
 
 @app.route('/category/<string:category>', methods=['POST', 'GET'])
 def category(category):

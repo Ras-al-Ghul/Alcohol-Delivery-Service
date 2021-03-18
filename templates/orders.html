@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Orders for {{ customer.firstname }} {{ customer.lastname }}</title>
+        <link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='css/main.css') }}">
+    </head>
+
+    <body>
+        <div class="centerbutton">
+            {% with messages = get_flashed_messages() %}
+              {% if messages %}
+                <ul class=flashes>
+                  {% for message in messages %}
+                    {{ message }}
+                  {% endfor %}
+                </ul>
+              {% endif %}
+            {% endwith %}
+          </div>
+
+          <div class="topnav">
+            <a class="topnavbuttonhome" href="/">Home</a>
+            <a class="topnavbuttonhome" href="/orders">Orders</a>
+            <a class="topnavbutton" href="/cart">Checkout {{itemcount}} items</a>
+            {% if login == None %}
+              <a class="topnavbutton" href="/login">Login/SignUp</a>
+            {% else %}
+              <a class="topnavbutton" href="/signup">Edit Profile</a>
+              <form method="POST" action="/logoutpost">
+                <button class="topnavbutton" style="color: #333">Logout</button>
+              </form>
+            {% endif %}
+          </div>
+
+        <h1 class='centerbutton'>Order History</h1>
+
+        <table class='prdtable'>
+            <thead>
+            <tr>
+                <th>Order ID</th>
+                <th>Order Number</th>
+                <th>Customer Name</th>
+                <th>Email</th>
+                <th>Order Total</th>
+                <th>Tax</th>
+                <th>Discount</th>
+                <th>Void</th>
+                <th>Carrier</th>
+                <th>Tracking Number</th>
+                <th>Ship Date</th>
+                <th>Delivered Date</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for o in orders %}
+            <tr>
+                <td>
+                    <a href="{{ url_for('order_details', order_id=o['order_id']) }}">{{ o.order_id }}</a>
+                </td>
+                <td>{{o['order_number']}}</td>
+                <td>{{ customer.first_name }} {{ customer.lastname }}</td>
+                <td>{{ customer.email }}</td>
+                <td>{{o['total']}}</td>
+                <td>{{o['tax']}}</td>
+                <td>{{o['discount']}}</td>
+                <td>{{o['is_void']}}</td>
+                <td>{{o['carrier']}}</td>
+                <td>{{o['tracking_number']}}</td>
+                <td>{{o['ship_date']}}</td>
+                <td>{{o['delivered_date']}}</td>
+            {% endfor %}
+            </tr>
+            </tbody>
+        </table>
+    </body>
+
+</html>
