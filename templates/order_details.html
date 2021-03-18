@@ -35,7 +35,7 @@
         <h1 class='centerbutton'>Order {{order.order_number}} Details</h1>
 
         <div class="orddetcontainer">
-            <div class="payment">
+            <div class="orddetheader">
                 Order Number: {{ order.order_number }}<br>
                 Customer Name: {{ order.first_name }} {{ order.last_name }}<br>
                 Customer Email: {{ order.email }}<br>
@@ -48,7 +48,34 @@
                     Ship Date: {{ order.ship_date }}<br>
                     Delivered Date: {{ order.delivered_date }}<br>
                 {% endif %}
+                <br><br><br><br><br><br><br>
             </div>
+
+            <div class="orddetheader">
+              Bill To:<br>
+              {{bill.first_name}} {{bill.last_name}}<br>
+              {{bill.address1}}<br>
+              {% if bill.address2 != None %}
+              {{bill.address2}}<br>
+              {% endif %}
+              {{bill.city}}, {{bill.state}} {{bill.zip}}<br>
+              {{bill.phone}}<br>
+              {% if bill.company != None %}
+              {{bill.company}}<br><br>
+              {% endif %}
+              
+              Ship To:<br>
+              {{ship.first_name}} {{ship.last_name}}<br>
+              {{ship.address1}}<br>
+              {% if ship.address2 != None %}
+              {{ship.address2}}<br>
+              {% endif %}
+              {{ship.city}}, {{ship.state}} {{ship.zip}}<br>
+              {{ship.phone}}<br>
+              {% if ship.company != None %}
+              {{ship.company}}<br><br>
+              {% endif %}
+          </div>
             </div>
         
             <div><br><br>

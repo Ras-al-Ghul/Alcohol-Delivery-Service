@@ -58,7 +58,7 @@
                     <a href="{{ url_for('order_details', order_id=o['order_id']) }}">{{ o.order_id }}</a>
                 </td>
                 <td>{{o['order_number']}}</td>
-                <td>{{ customer.first_name }} {{ customer.lastname }}</td>
+                <td>{{ customer.first_name }} {{ customer.last_name }}</td>
                 <td>{{ customer.email }}</td>
                 <td>{{o['total']}}</td>
                 <td>{{o['tax']}}</td>

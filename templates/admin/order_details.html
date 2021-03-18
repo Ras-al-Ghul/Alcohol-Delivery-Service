@@ -33,16 +33,27 @@
         {% if order.is_void == True %}
             *****ORDER VOIDED*****<br>
         {% endif %}
-        {% if order.is_void == False %}
-            Carrier: {{ order.carrier }}<br>
-            Tracking Number: {{ order.tracking_number }}<br>
-            Ship Date: {{ order.ship_date }}<br>
-            Delivered Date: {{ order.delivered_date }}<br>
-        {% endif %}
+        <br><br>
+          Bill To:<br>
+          {{bill.first_name}} {{bill.last_name}}<br>
+          {{bill.address1}}<br>
+          {% if bill.address2 != None %}
+          {{bill.address2}}<br>
+          {% endif %}
+          {{bill.city}}, {{bill.state}} {{bill.zip}}<br>
+          {{bill.phone}}<br>
+          {% if bill.company != None %}
+          {{bill.company}}<br><br>
+          {% endif %}<br>
     </div>
     <div class="orddetheader">
-        {% from "_formhelper.html" import render_field %}
-
+        <!-- {% from "_formhelper.html" import render_field %}
+        {% if order.is_void == False %}
+        Carrier: {{ order.carrier }}<br>
+        Tracking Number: {{ order.tracking_number }}<br>
+        Ship Date: {{ order.ship_date }}<br>
+        Delivered Date: {{ order.delivered_date }}<br>
+        {% endif %} -->
         <form method="POST" action="">
             {{render_field(form.carrier)}} <br>
             {{render_field(form.tracking_number)}} <br>
@@ -51,6 +62,18 @@
             <input type="submit" value="Update">
             <p>Ship Date must be less than delivered date.</p>
         </form>
+
+        Ship To:<br>
+        {{ship.first_name}} {{ship.last_name}}<br>
+        {{ship.address1}}<br>
+        {% if ship.address2 != None %}
+        {{ship.address2}}<br>
+        {% endif %}
+        {{ship.city}}, {{ship.state}} {{ship.zip}}<br>
+        {{ship.phone}}<br>
+        {% if ship.company != None %}
+        {{ship.company}}
+        {% endif %}
     </div>
     </div>
 
