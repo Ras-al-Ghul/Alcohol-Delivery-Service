@@ -16,6 +16,7 @@ import hashlib
 from sqlalchemy import *
 from sqlalchemy.pool import NullPool
 from flask import Flask, flash, request, render_template, g, redirect, Response, session, url_for
+from random import randint
 from sqlalchemy.sql.selectable import Select
 from wtforms import Form, StringField, SubmitField, DecimalField, DateField, PasswordField, SelectField
 
@@ -193,7 +194,7 @@ def signuppost():
         .format(firstname, lastname, username, dob, passhash, details['customer_id']))
       flash('Update successful')
     else:
-      g.conn.execute("INSERT INTO customer (first_name, last_name, email, dob, password) VALUES '{}', '{}', '{}', {}, '{}'"
+      g.conn.execute("INSERT INTO customer (first_name, last_name, email, dob, password) VALUES ('{}', '{}', '{}', {}, '{}')"
         .format(firstname, lastname, username, dob, passhash))
       flash('Welcome to Booze.io')
     session['username'] = username
@@ -203,11 +204,9 @@ def signuppost():
 
 @app.route('/logoutpost', methods=['POST'])
 def logoutpost():
-    for k in ('username', 'is_admin', 'cart', 'itemcount'):
-        try:
-            del session[k]
-        except KeyError:
-            continue
+    keys = list(session.keys())
+    for k in keys:
+        del session[k]
     flash('You\'ve successfully signed out.')
     return redirect(url_for('index'))
 
@@ -249,7 +248,7 @@ def cart():
             del session['cart'][product_id]
         session['itemcount'] -= 1
     products = []
-    total = 0.
+    total, discount = 0., 0.
     for k, v in session['cart'].items():
         row = g.conn.execute(
             "select p.product_id, p.product_name, p.unit_of_measure, p.item_price, p.package_quantity, p.region, p.country, p.color, p.description, b.brand_name, b.description as brand_description from product p left join brand b on b.brand_id = p.brand_id where p.product_id = {}".format(k)
@@ -260,9 +259,11 @@ def cart():
         row['discount'] = 0.0
         if int(v) >= 3:
             row['discount'] = round(int(v)//3., 2)
+        discount += row['discount']
         row['final_price'] = row['init_price'] - row['discount']
         products.append(row)
         total += row['final_price']
+    session['discount'] = round(discount, 2)
     session['total'] = total = round(total, 2)
     session['tax'] = tax = round(0.04 * total, 2)
     session['total_post_tax'] = total_post_tax = round(total + tax, 2)
@@ -282,6 +283,8 @@ class AddressForm(Form):
       zips = StringField('Zip: ')
       phone = StringField('Phone (xxx-xxx-xxxx): ')
       company = StringField('Company: ')
+      shipping = StringField('Shipping: ')
+      billing = StringField('Billing: ')
 
 @app.route('/address', methods=['POST', 'GET'])
 def address():
@@ -289,14 +292,34 @@ def address():
           return redirect(url_for('index'))
     
       if request.method == 'POST':
-          pass
-      
+          if 'billing' in request.form :
+              if request.form['billing'] != "None":
+                  session['bills'] = int(request.form['billing'])
+                  flash("Billing address updated")
+          elif 'shipping' in request.form:
+              if request.form['shipping'] != "None":
+                  session['ships'] = int(request.form['shipping'])
+                  flash("Shipping address updated")
+          elif 'address_id' in request.form:
+              if request.form['address_id'] != "None":
+                  g.conn.execute("UPDATE address SET first_name = '{}', last_name = '{}', address1 = '{}', address2 = '{}', city = '{}', state = '{}', zip = '{}', phone = '{}', company = '{}' WHERE address_id = {}"
+                      .format(request.form['firstname'], request.form['lastname'], request.form['address1'], request.form['address2'], request.form['city'], request.form['state'], request.form['zips'], request.form['phone'], request.form['company'], request.form['address_id']))
+                  flash("Address updated successfully")
+              else:
+                  if request.form['firstname'] != '' and request.form['lastname'] != '' and request.form['address1'] != '':
+                      g.conn.execute("INSERT INTO address (first_name, last_name, address1, address2, city, state, zip, phone, company) VALUES ('{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}')"
+                          .format(request.form['firstname'], request.form['lastname'], request.form['address1'], request.form['address2'], request.form['city'], request.form['state'], request.form['zips'], request.form['phone'], request.form['company']))
+                      addr_id = g.conn.execute("SELECT address_id from address WHERE first_name = '{}' AND last_name = '{}' AND address1 = '{}' AND address2 = '{}' AND city = '{}' AND state = '{}' AND zip = '{}' AND phone = '{}' AND company = '{}'"
+                          .format(request.form['firstname'], request.form['lastname'], request.form['address1'], request.form['address2'], request.form['city'], request.form['state'], request.form['zips'], request.form['phone'], request.form['company'])).fetchone()
+                      user = g.conn.execute("SELECT customer_id FROM customer WHERE email = '{}'".format(get_login())).fetchone()
+                      g.conn.execute("INSERT INTO customer_lives (customer_id, address_id, is_active) VALUES ({}, {}, False)".format(user['customer_id'], addr_id['address_id']))
+                      flash("Address added successfully")
       user = g.conn.execute("SELECT customer_id FROM customer WHERE email = '{}'".format(get_login())).fetchone()
       addresses = g.conn.execute("SELECT * from address, customer_lives WHERE address.address_id = customer_lives.address_id AND customer_lives.customer_id = {}".format(user['customer_id'])).fetchall()
       addresses_list = []
       for a in addresses:
           row = dict(a)
-          form = AddressForm(request.form)
+          form = AddressForm()
           form.addressid.data = row['address_id']
           form.firstname.data = row['first_name']
           form.lastname.data = row['last_name']
@@ -307,9 +330,17 @@ def address():
           form.zips.data = row['zip']
           form.phone.data = row['phone']
           form.company.data = row['company']
+          form.shipping.data = row['is_active'] if 'ships' not in session else (session['ships'] == int(row['address_id'])) 
+          form.billing.data = row['is_active'] if 'bills' not in session else (session['bills'] == int(row['address_id']))
+          if form.shipping.data == "True":
+            session['ships'] = int(row['address_id'])
+          if form.billing.data == "True":
+            session['bills'] = int(row['address_id'])
           addresses_list.append(form)
-
-      return render_template('address.html', addresses_list=addresses_list, userid=user['customer_id'])
+      addresses_list.append(AddressForm())
+      ships = None if 'ships' not in session else session['ships']
+      bills = None if 'bills' not in session else session['bills']
+      return render_template('address.html', addresses_list=addresses_list, ships=ships, bills=bills)
 
 
 class PaymentForm(Form):
@@ -332,10 +363,33 @@ def payment():
         expiration_date = request.form['expiration_date']
         cvv2 = request.form['cvv2']
 
+        # One transaction
+        with g.conn.begin():
+            user_id = g.conn.execute("SELECT customer_id FROM customer WHERE email = '{}'".format(get_login())).fetchone()['customer_id']
+            g.conn.execute("INSERT INTO orders (customer_id, bills_to, ships_to, order_number, discount, tax, total, is_void) VALUES ({}, {}, {}, '{}', {}, {}, {}, False)"
+              .format(user_id, session['bills'], session['ships'], random.randint(1000000001, 9999999999), session['discount'], session['tax'], session['total_post_tax']))
+            order_id = g.conn.execute("SELECT order_id FROM orders WHERE customer_id = {} ORDER BY order_id DESC".format(user_id)).fetchone()['order_id']
+            g.conn.execute("INSERT INTO payment (order_id, payment_method, payment_amount, payment_status, credit_card, expiration_date, cvv2) VALUES ({}, '{}', {}, 'SUCCESS', '{}','{}', {})"
+              .format(order_id, payment_method, session['total_post_tax'], credit_card, expiration_date, cvv2))
+            for k, v in session['cart'].items():
+                price = g.conn.execute("select item_price from product where product_id = {}".format(int(k))).fetchone()['item_price']
+                discount = round(v/3, 2);
+                g.conn.execute("INSERT INTO order_items (order_id, product_id, quantity, price, discount) VALUES ({}, {}, {}, {}, {})"
+                  .format(order_id, int(k), v, price, discount))
+            addr = g.conn.execute("select address_id from customer_lives where customer_id = {}".format(user_id)).fetchall()
+            for a in addr:
+                g.conn.execute("UPDATE customer_lives SET is_active = False WHERE address_id = {}".format(a[0]))
+            g.conn.execute("UPDATE customer_lives SET is_active = True WHERE address_id = {}".format(session['ships']))
+
+        keys = list(session.keys())
+        for k in keys:
+            if k not in ('username', 'is_admin'):
+                del session[k]
+
         flash('Payment Successful', 'success')
         return redirect('/orders')
       
-      return render_template('payment.html', form=form)
+      return render_template('payment.html', form=form, amount=session['total_post_tax'])
 
 @app.route('/orders')
 def orders():

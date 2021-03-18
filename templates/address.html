@@ -44,36 +44,62 @@
                 <th>Company</th>
                 <th>Shipping</th>
                 <th>Billing</th>
-                <th>Edit</th>
+                <th>Edit/Add</th>
             </tr>
           </thead>
 
-          {% from "_formhelper.html" import render_field %}
           <tbody>
             {% for addr in addresses_list %}
-            <tr>
-              <td>{{addr.firstname}}</td>
-              <td>{{addr.lastname}}</td>
-              <td>{{addr.address1}}</td>
-              <td>{{addr.address2}}</td>
-              <td>{{addr.city}}</td>
-              <td>{{addr.state}}</td>
-              <td>{{addr.zips}}</td>
-              <td>{{addr.phone}}</td>
-              <td>{{addr.company}}</td>
-              <td>
-              </td>
-              <td>
-              </td>
-              <td>
-                <form class="centerbutton" method="POST" action="/address">
-                  <button class="editbtn" type="submit" name="address_id" value="{{addr.addressid.data}}">Edit</button>
-                </form>
-              </td>
-            </tr>
+            <form class="centerbutton" method="POST" action="/address">
+              <tr>
+                <td>{{addr.firstname}}</td>
+                <td>{{addr.lastname}}</td>
+                <td>{{addr.address1}}</td>
+                <td>{{addr.address2}}</td>
+                <td>{{addr.city}}</td>
+                <td>{{addr.state}}</td>
+                <td>{{addr.zips}}</td>
+                <td>{{addr.phone}}</td>
+                <td>{{addr.company}}</td>
+                <td>
+                  <button class="editbtn" type="submit" name="shipping" value="{{addr.addressid.data}}">
+                    {% if addr.shipping.data == True %}
+                      Ships here
+                    {% else %}
+                      Select
+                    {% endif %}
+                  </button>
+                </td>
+                <td>
+                  <button class="editbtn" type="submit" name="billing" value="{{addr.addressid.data}}">
+                    {% if addr.billing.data == True %}
+                      Bills here
+                    {% else %}
+                      Select
+                    {% endif %}
+                  </button>
+                </td>
+                <td>                  
+                  <button class="editbtn" type="submit" name="address_id" value="{{addr.addressid.data}}">
+                    {% if addr.firstname.data == None %}
+                      Add
+                    {% else %}
+                      Edit
+                    {% endif %}
+                  </button>
+                </td>
+              </tr>
+            </form>
             {% endfor %}
           </tbody>
         </table>
+        {% if ships != None and bills != None %}
+          <div class="centerbutton">
+            <form method="GET" action="{{ url_for('payment') }}">
+                <input class="editbth" type="submit" value="Proceed to Payment">
+            </form>
+          </div>
+        {% endif %}
     </body>
 
 </html>
