@@ -17,7 +17,7 @@ from sqlalchemy import *
 from sqlalchemy.pool import NullPool
 from flask import Flask, flash, request, render_template, g, redirect, Response, session, url_for
 from sqlalchemy.sql.selectable import Select
-from wtforms import Form, StringField, SubmitField, DecimalField, IntegerField, DateField
+from wtforms import Form, StringField, SubmitField, DecimalField, IntegerField, DateField, PasswordField
 
 tmpl_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates')
 app = Flask(__name__, template_folder=tmpl_dir)
@@ -163,11 +163,22 @@ def loginpost():
     return redirect(url_for('login'))
 
 
+# Signup and edit
+class SignupForm(Form):
+      email = StringField('Email (this is your username): ')
+      password = PasswordField('Password: ')
+      reenterpassword = PasswordField('Re-enter password')
+      firstname = StringField('First name: ')
+      lastname = StringField('Last name: ')
+      dob = StringField('Date of Birth yyyy-mm-dd (you certify that you are 21 years or older): ')
+      submit = SubmitField('Submit')    
+
+
 @app.route('/signuppost', methods=['POST'])
 def signuppost():
-    username = request.form['username']
-    password1 = request.form['password1']
-    password2 = request.form['password2']
+    username = request.form['email']
+    password1 = request.form['password']
+    password2 = request.form['reenterpassword']
     firstname = request.form['firstname']
     lastname = request.form['lastname']
     dob = request.form['dob']
@@ -176,9 +187,15 @@ def signuppost():
       flash('One of your details is incorrect. Try again.')
       return redirect(url_for('signup'))
     passhash = hashlib.md5(password1.encode()).hexdigest()
-    g.conn.execute("INSERT INTO customer (first_name, last_name, email, dob, password) VALUES '{}', '{}', '{}', {}, '{}'"
-      .format(firstname, lastname, username, dob, passhash))
-    flash('Welcome to Booze.io')
+    details = g.conn.execute("select * from customer where email = '{}'".format(get_login())).fetchone()
+    if details is not None:
+      g.conn.execute("UPDATE customer SET first_name = '{}', last_name = '{}', email = '{}', dob = '{}', password = '{}' WHERE customer_id = {}"
+        .format(firstname, lastname, username, dob, passhash, details['customer_id']))
+      flash('Update successful')
+    else:
+      g.conn.execute("INSERT INTO customer (first_name, last_name, email, dob, password) VALUES '{}', '{}', '{}', {}, '{}'"
+        .format(firstname, lastname, username, dob, passhash))
+      flash('Welcome to Booze.io')
     session['username'] = username
     session['is_admin'] = False
     return redirect(url_for('index'))
@@ -202,15 +219,21 @@ def login():
         flash('You\'re already logged in')
         return redirect(url_for('index'))
     return render_template('login.html', itemcount=session['itemcount'], login=get_login())
-    
+
 
 @app.route('/signup')
 def signup():
     initialize_cart()
+    form = SignupForm(request.form)
+    edit = False
     if get_login():
-        flash('You already have an account, logout to create another one')
-        return redirect(url_for('index'))
-    return render_template('signup.html', itemcount=session['itemcount'], login=get_login())
+        details = g.conn.execute("select * from customer where email = '{}'".format(get_login())).fetchone()
+        form.email.data = details['email']
+        form.firstname.data = details['first_name']
+        form.lastname.data = details['last_name']
+        form.dob.data = details['dob']
+        edit = True
+    return render_template('signup.html', itemcount=session['itemcount'], edit=edit, form=form)
 
 
 @app.route('/cart', methods=['POST', 'GET'])
@@ -245,11 +268,6 @@ def cart():
     session['total_post_tax'] = total_post_tax = round(total + tax, 2)
     return render_template('cart.html', products=products, total=total, 
                                         tax=tax, total_post_tax=total_post_tax)
-
-
-@app.route('/customer')
-def customer():
-    pass
 
 
 @app.route('/ship')

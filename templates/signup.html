@@ -1,7 +1,11 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Signup to Booze.io</title>
+    {% if edit == False %}
+      <title>Signup to Booze.io</title>
+    {% else %}
+      <title>Edit details</title>
+    {% endif %}
     <link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='css/main.css') }}">
   </head>
 
@@ -11,32 +15,30 @@
     <a class="topnavbuttonhome" href="/">Home</a>
     <a class="topnavbutton" href="/cart">Checkout {{itemcount}} items</a>
   </div>
+  {% from "_formhelper.html" import render_field %}
   <form class="centerbutton" method="POST" action="/signuppost">
-    <p>
-      Email (this will be your username): <input type="text" name="username"> 
-      <br>
-      Password: <input type="password" name="password1">
-      <br>
-      Re-enter Password: <input type="password" name="password2">
-      <br>
-      First name: <input type="text" name="firstname"> 
-      <br>
-      Last name: <input type="text" name="lastname"> 
-      <br>
-      Date of birth yyyy-mm-dd (you certify that you are 21 years or older): <input type="text" name="dob"> 
-      <br>
-      <input type="submit" value="Signup">
-    </p>
-    {% with messages = get_flashed_messages() %}
-      {% if messages %}
-        <ul class=flashes>
-          {% for message in messages %}
-            {{ message }}
-          {% endfor %}
-        </ul>
+      {{render_field(form.email)}} <br>
+      {{render_field(form.password)}} <br>
+      {{render_field(form.reenterpassword)}} <br>
+      {{render_field(form.firstname)}} <br>
+      {{render_field(form.lastname)}} <br>
+      {{render_field(form.dob)}} <br>
+      {% if edit == False %}
+        <input type="submit" value="Sign Up">
+      {% else %}
+        <input type="submit" value="Update">
       {% endif %}
-    {% endwith %}
   </form>
+
+  {% with messages = get_flashed_messages() %}
+    {% if messages %}
+      <ul class=flashes>
+        {% for message in messages %}
+          {{ message }}
+        {% endfor %}
+      </ul>
+    {% endif %}
+  {% endwith %}
 
 </body>
 
