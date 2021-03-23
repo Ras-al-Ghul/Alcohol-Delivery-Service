@@ -380,6 +380,7 @@ def payment():
             for a in addr:
                 g.conn.execute("UPDATE customer_lives SET is_active = False WHERE address_id = {}".format(a[0]))
             g.conn.execute("UPDATE customer_lives SET is_active = True WHERE address_id = {}".format(session['ships']))
+            g.conn.execute("INSERT INTO shipment (order_id) VALUES ({})".format(order_id))
 
         keys = list(session.keys())
         for k in keys:
