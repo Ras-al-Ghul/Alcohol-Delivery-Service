@@ -367,7 +367,7 @@ def payment():
         with g.conn.begin():
             user_id = g.conn.execute("SELECT customer_id FROM customer WHERE email = '{}'".format(get_login())).fetchone()['customer_id']
             g.conn.execute("INSERT INTO orders (customer_id, bills_to, ships_to, order_number, discount, tax, total, is_void) VALUES ({}, {}, {}, '{}', {}, {}, {}, False)"
-              .format(user_id, session['bills'], session['ships'], random.randint(1000000001, 9999999999), session['discount'], session['tax'], session['total_post_tax']))
+              .format(user_id, session['bills'], session['ships'], randint(1000000001, 9999999999), session['discount'], session['tax'], session['total_post_tax']))
             order_id = g.conn.execute("SELECT order_id FROM orders WHERE customer_id = {} ORDER BY order_id DESC".format(user_id)).fetchone()['order_id']
             g.conn.execute("INSERT INTO payment (order_id, payment_method, payment_amount, payment_status, credit_card, expiration_date, cvv2) VALUES ({}, '{}', {}, 'SUCCESS', '{}','{}', {})"
               .format(order_id, payment_method, session['total_post_tax'], credit_card, expiration_date, cvv2))
